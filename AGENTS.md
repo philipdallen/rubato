@@ -127,8 +127,13 @@ See [FORMAT_SPEC.md](FORMAT_SPEC.md) for the format design,
 - **The rebase-dedup rule proved itself twice this session** — an S2 codec
   rebase aborted cleanly when a sibling landed first, and seam tests were
   dropped when #165 got claimed by a sibling mid-build.
-- **GITHUB_TOKEN can rotate mid-session** — ALL_REPOs_GH_TOKEN works; pass
-  it via `GH_TOKEN=$ALL_REPOs_GH_TOKEN gh ...` when plain `gh` refuses.
+- **GITHUB_TOKEN can rotate mid-session** - pin `GH_TOKEN` to the live token
+  (`export GH_TOKEN=$GITHUB_TOKEN`), which works whether `GH_TOKEN` is stale or
+  absent. `ALL_REPOs_GH_TOKEN` is not present in every sandbox; do not rely on
+  it. There is no agent-side refresh step: name `$GITHUB_TOKEN` in a new command
+  to get the current value. Long-running processes, and remote URLs with a token
+  embedded, capture the token at start and need a restart / re-point after a
+  rotation. See `portfolio-ops/ACCESS_AND_IDENTITIES.md`.
 
 ## Build / test
 

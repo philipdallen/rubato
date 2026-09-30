@@ -75,9 +75,10 @@ MIDI lyric meta events (`0x05`) are not read. The corpus's MIDI sources
 (Byrd) are untexted, so there is no evidence to drive the behaviour and
 guessing it would violate "a construct without corpus evidence doesn't
 ship". The decision is recorded, not silently deferred — a texted MIDI
-source loads with no lyric and no warning, and
-`tools/ir/tests/test_vocal_text.py` pins that state so it is visible as a
-choice. When a texted MIDI source arrives, parsing plus a round-trip pin is
+source loads with no lyric but does **warn** that the lyric events were
+dropped (`Work.meta.warnings`), and `tools/ir/tests/test_vocal_text.py`
+pins that state so it is visible as a loud choice rather than a silent
+loss. When a texted MIDI source arrives, parsing plus a round-trip pin is
 the follow-up, and that test is the one to invert.
 
 ## Phase 2 — Deterministic player (the baseline)

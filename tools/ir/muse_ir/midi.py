@@ -60,6 +60,7 @@ def load_midi(source, origin: str = None) -> Work:
     key: set = set()
     parts = []
     title = None
+    lyric_meta_count = 0
 
     for track_index, track in enumerate(mid.tracks):
         tick = 0
@@ -93,6 +94,10 @@ def load_midi(source, origin: str = None) -> Work:
                     raise IRParseError(f"{origin}: unknown key signature {msg.key!r}")
                 fifths, mode = _KEY_FIFTHS[msg.key]
                 key.add((tick, fifths, mode))
+            elif msg.type == "lyrics":
+                # Lyric meta (0x05) is deliberately unimplemented (no texted
+                # MIDI in the corpus), but the loss must be audible (#365).
+                lyric_meta_count += 1
             elif msg.type == "program_change":
                 if gm_program is None:
                     gm_program = msg.program
@@ -152,6 +157,10 @@ def load_midi(source, origin: str = None) -> Work:
     if 0 not in meter:
         warnings.append("no time_signature meta event; inserted 4/4 at tick 0")
         meter[0] = (4, 4)
+    if lyric_meta_count:
+        warnings.append(
+            f"{lyric_meta_count} lyric event(s) ignored — MIDI lyric import is not implemented"
+        )
 
     work = Work(
         parts=parts,

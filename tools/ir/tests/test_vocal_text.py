@@ -409,8 +409,9 @@ def test_midi_lyric_meta_is_not_read():
     corpus's MIDI sources (Byrd) are untexted, so there is no evidence to
     drive the behaviour and guessing it would violate "no construct without
     corpus evidence". This pins the decision — a texted MIDI source yields a
-    note with no lyric and *no* warning, so the gap is visible as a decision
-    rather than a silent loss. Invert this when texted MIDI evidence lands.
+    note with no lyric, but the load now *warns* that the lyric events were
+    dropped, so the gap is loud rather than a silent loss (#365). Invert this
+    when texted MIDI evidence lands.
     """
     mid = mido.MidiFile(type=1, ticks_per_beat=480)
     conductor = mido.MidiTrack()
@@ -436,7 +437,7 @@ def test_midi_lyric_meta_is_not_read():
     assert texted[0].syllabic is None
     assert texted[0].extend is False
     assert texted[0].verses == ()
-    assert not any("lyric" in w.lower() for w in work.meta.warnings), (
-        "a texted MIDI source should not warn about unsupported lyrics; the "
-        "gap is recorded here, not on every load"
+    assert any("lyric" in w.lower() for w in work.meta.warnings), (
+        "a texted MIDI source must warn that its lyric events were dropped; "
+        "silent loss is the defect #365 was filed to remove"
     )

@@ -29,3 +29,5 @@ Do not change spec contents or close any issue. This is a rename of files whose 
 
 ---
 Filed from the RLM Analyzer triage pass. Filing policy: D22 in `docs/decisions/LOG.md`; consolidated record in `philipdallen/portfolio-ops` (`RLM_TRIAGE_2026-10-01.md`, branch `tasks/rlm-triage-2026-10-01`).
+
+Directive: D22

@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install runtime deps
-        run: pip install mido matplotlib pyyaml pytest
+        run: pip install mido matplotlib pyyaml pytest playwright
       - name: Conformance gate (~2.5 min)
         run: |
           set -e
@@ -36,7 +36,7 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install runtime deps
-        run: pip install mido matplotlib pyyaml pytest
+        run: pip install mido matplotlib pyyaml pytest playwright
       - name: Slow conformance (Beethoven 9, ~30–35s)
         run: |
           ./tools/run_tests.sh --full                # 13 suites incl. B9 (allow-fail)

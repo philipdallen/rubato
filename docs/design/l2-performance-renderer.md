@@ -56,6 +56,48 @@ or fallback to GM.
 - **Non-goals:** notation software, video/audio mixing, streaming
   playback (L3 will handle A/B output).
 
+## sfizz/SFZ integration decision (2026-10-09, #396)
+
+Recorded by step 1 of the #382 split (superseded by #396 → #397 → #398). This
+resolves the integration shape the wiring step (#397) will use and measures
+whether the primary tier can run in the automation sandbox.
+
+**Integration shape — CLI-first.** The wiring uses the sfizz CLI
+(`sfizz_render_in_place`), not the C API: the renderer shells out to the binary
+and reads back a WAV. This is the doc's "Integration shape" line above, and it
+keeps sfizz an optional external tool rather than an `import sfizz` Python
+dependency — which is what let the fallback replace `import sfizz` without a
+build step. Per-part program → SFZ program mapping is a table from the mockup part's
+`instrument` field to `<SFZ_DIR>/<instrument>.sfz`, and any part not mapped to
+an SFZ program falls back to the envelope path rather than failing.
+
+**Environment measurement (2026-10-09, automation sandbox, Linux x86-64).**
+Commands run and their results:
+
+    $ which sfizz sfizz_render            # rc=1, no output
+    $ apt-cache policy sfizz              # N: Unable to locate package sfizz
+    $ pip index versions sfizz            # ERROR: No matching distribution found
+    $ which fluidsynth                    # rc=1, no output
+    $ echo "$SFZ_DIR"                     # <unset>
+    $ find . -iname '*.sfz' -o -iname '*.sf2'   # (no repo assets)
+
+sfizz is not installed, not in the apt index, and not on PyPI; the fallback's
+other target (FluidSynth) is likewise absent. No SFZ/SF2 assets ship in the repo
+(`docs/spike/*.wav` are renders, not samples).
+
+**Sample-library contract for #397.** The wiring reads SFZ programs from
+`SFZ_DIR` (a directory of per-instrument `.sfz` files, e.g.
+`$SFZ_DIR/violin.sfz`). The repository does not own or ship SSO/VPO samples —
+they are multi-GB third-party libraries resolved from the environment, matching
+the "samples library registration (SSO/VPO) stays pending" note above.
+
+**Consequence.** #397 can land the wiring (the CLI-first path, the `SFZ_DIR`
+mapping table, and a tier probe) and keep the envelope fallback selectable, but
+it cannot produce a real SFZ render until `sfizz` plus an SFZ library are
+provisioned in the environment. That provisioning is an environment blocker, not
+a spec ambiguity; #397 parks with a single `NEEDS:` line naming it if the sandbox
+still lacks the toolchain, rather than re-attempting the wiring.
+
 ## Open questions (draft-level)
 
 - Split or subgraph: per-part render then sum, or whole-mix render per

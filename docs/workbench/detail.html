@@ -81,6 +81,15 @@
 async function loadJSON(p) { const r = await fetch(p); return r.ok ? r.json() : null; }
 async function loadText(p) { const r = await fetch(p); return r.ok ? r.text() : null; }
 
+// A *failed* fetch (network abort, or a missing file the server answers as a
+// network error) rejects rather than resolving to null, so awaiting it
+// unguarded inside the revision loop throws and blanks the whole console.
+// This wrapper degrades a single artifact fetch to null, so its own card
+// falls back and the remaining revisions still render (#390).
+async function loadSafe(load, path) {
+  try { return await load(path); } catch (e) { return null; }
+}
+
 // Minimal YAML → object for the seed fields the panel renders (params +
 // philosophy). The seed is also committed as JSON in the probes artifact,
 // but the panel reads the authored YAML directly.
@@ -250,15 +259,15 @@ function slug(s) { return String(s).replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-
       // cannot be reached by a plain CSS selector without escaping.
       const anchorId = `rev-${slug(entry.work_id)}-${label}`;
       jumps.push({ id: anchorId, label: `${entry.work_id} ${label}` });
-      const seedText = await loadText(`data/seeds/${entry.file}`);
+      const seedText = await loadSafe(loadText, `data/seeds/${entry.file}`);
       const seed = seedText ? parseSeedYaml(seedText) : null;
-      const probes = await loadJSON(`data/seeds/${entry.probes}`);
+      const probes = await loadSafe(loadJSON, `data/seeds/${entry.probes}`);
       // Load per work, render on the first revision only (see growthByWork).
       if (!(entry.work_id in growthByWork)) {
-        growthByWork[entry.work_id] = await loadGrowth(entry.work_id);
+        growthByWork[entry.work_id] = await loadSafe(loadGrowth, entry.work_id);
       }
       const growth = seenWork.has(entry.work_id) ? null : growthByWork[entry.work_id];
-      const directives = await loadJSON(`data/seeds/${entry.work_id}.directives.json`);
+      const directives = await loadSafe(loadJSON, `data/seeds/${entry.work_id}.directives.json`);
       const div = document.createElement('div');
       div.className = 'work';
       // Work-level anchor for the corpus tree's `#<file-id>` deep links

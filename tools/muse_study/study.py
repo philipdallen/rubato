@@ -5,9 +5,14 @@ a seed and, crucially, also builds the mockup and asks the distiller
 whether the directive *survived the render* — the feedback loop that
 trains the conductor's ear without live musicians.
 
-Survival is measured by mapping each verb to the interpretation field it
-should move (VERB_MEASURES) and comparing the mockup's extracted
-Interpretation against the base's, with a move/no-move/drift verdict.
+Survival is measured in two lanes. The **seed-param lane** maps each verb
+to the seed knob it should move (VERB_MEASURES) and compares base vs
+candidate seed params. The **render lane** (RR2, #381) realizes both seeds
+into a mockup and asks whether the directive survived the render: with the
+real L1 generate loop (`MUSE_L1_LIVE`, #276) it compares the distilled
+Interpretation (velocity spread, part gains, curve shape); with the
+deterministic stand-in it reports `stand-in-blocked`, since the stand-in is
+flat regardless of seed.
 """
 
 from __future__ import annotations

@@ -47,6 +47,8 @@ SUITES+=("chain_smoke:muse_chain/test_chain_smoke.py")
 SUITES+=("muse_explorer:muse_explorer/tests")
 # Probes (fast tier): seed-iteration probe engine.
 SUITES+=("muse_probes:muse_probes/tests")
+# Study (fast tier): R3 study scripts + seed/render survival feedback (#284, RR2 #381).
+SUITES+=("muse_study:muse_study/tests")
 # Lineage (fast tier): chain-walk/verify helper (S3.8a).
 SUITES+=("muse_lineage:muse_lineage")
 # Generate loop (fast tier): schema, provider, generate, integration.

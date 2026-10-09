@@ -1,12 +1,13 @@
 """muse-study CLI: run a conductor-training study script against a seed.
 
     python3 tools/muse_study/cli.py list
-    python3 tools/muse_study/cli.py run <script> <seed.yaml>
+    python3 tools/muse_study/cli.py run <script> <seed.yaml> [--live]
 
 Runs each directive step through the rehearsal compiler and reports, per
-step, whether the directive survived (seed-param level; render-level is
-stand-in-blocked until the real L1 lands). Exit 0 always — the report is
-the drill, not a gate.
+step, the seed-param verdict and the render verdict. Pass --live (or set
+MUSE_L1_LIVE, the gate muse_grow uses) to run the real L1 generate loop in
+the render lane; otherwise it is stand-in-blocked. Exit 0 always — the
+report is the drill, not a gate.
 """
 
 from __future__ import annotations

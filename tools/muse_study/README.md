@@ -12,6 +12,7 @@ Design: [docs/design/r1-rehearsal-directives.md](../../docs/design/r1-rehearsal-
 ```bash
 python3 tools/muse_study/cli.py list
 python3 tools/muse_study/cli.py run <script> <seed.yaml>
+python3 tools/muse_study/cli.py run <script> <seed.yaml> --live
 ```
 
 `run` compiles each directive step in sequence (the running candidate
@@ -19,15 +20,22 @@ carries forward, so steps compound — that's the drill) and reports, per
 step, whether the directive's knob landed (`moved`), didn't (`flat`),
 or moved the wrong way (`drifted`).
 
-## Survival is measured at the seed-param level
+## Two survival lanes: seed-param and render
 
-`check_survival` maps each verb to the seed knob it should move
-(`VERB_MEASURES`) and compares base vs candidate seed params. The
-render/mockup level is **stand-in-blocked**: the deterministic stand-in
-produces a flat mockup regardless of seed, so "did it survive the
-render" is only meaningful once the real L1 generate loop lands (L1.11,
-#276 — the `MOCKUP_FN` swap). The interface is ready for it; the
-verdicts today are seed-level.
+`check_survival` reports both lanes.
+
+**Seed-param lane.** Maps each verb to the seed knob it should move
+(`VERB_MEASURES`) and compares base vs candidate seed params — the
+`moved` / `flat` / `drifted` verdict shown first.
+
+**Render lane (RR2, #381).** Asks whether the change survived realization
+into a mockup. With the deterministic stand-in — the default — the mockup
+is flat regardless of seed, so the lane reports **`stand-in-blocked`**
+rather than a misleading `flat`. Pass `--live` (or set `MUSE_L1_LIVE`,
+the same gate `muse_grow` uses) to run the real L1 generate loop (#276,
+`muse_grow.real_mockup`); it then compares the distilled `Interpretation`
+— velocity spread, part gains, curve shape — and reports `moved` /
+`flat`.
 
 ## The scripts
 
@@ -44,10 +52,16 @@ text, and a list of directive steps using the R2 grammar.
 ## Tests
 
 `cd tools && python -m pytest muse_study -q`. Spec:
-[tests/closed_20260826-113000_r3-study-scripts.md](../../tests/closed_20260826-113000_r3-study-scripts.md).
+[tests/closed_20260826-113000_r3-study-scripts.md](../../tests/closed_20260826-113000_r3-study-scripts.md)
+(seed-param lane, #284) and
+[tests/closed_20261009-184500_rr2-study-live-render.md](../../tests/closed_20261009-184500_rr2-study-live-render.md)
+(render lane, #381). The live path runs offline behind a recorded
+`RecordedProvider` fixture, mirroring the `muse_generate` / `muse_grow`
+suites.
 
 ## Dependencies
 
 `muse_rehearse` (the directive compiler), `muse_seed` (params/budgets),
-`muse_ir` (work loading), `muse_distill`/`muse_grow` (interpretation
-fields + the stand-in pin the render-level check will use).
+`muse_ir` (work loading), `muse_generate`/`muse_provider` (the live loop
+and its recorded fixture), `muse_distill`/`muse_grow` (`real_mockup` plus
+the `Interpretation` fields the render lane compares).

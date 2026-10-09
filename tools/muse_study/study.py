@@ -84,29 +84,55 @@ SCRIPTS = {
 }
 
 
+def _build_mockup(work, seed, mockup_fn=None, provider=None):
+    """work + seed → (Mockup, live_flag).
+
+    Mirrors muse_grow's gate: with MUSE_L1_LIVE set and a seed in hand,
+    build via the real L1 generate loop (`muse_grow.real_mockup`) and report
+    live=True; otherwise the deterministic stand-in (live=False). An explicit
+    `mockup_fn` (tests, `live=True`) wins over both and is called as
+    `mockup_fn(work, seed)`. `provider` is forwarded to the live loop so a
+    RecordedProvider fixture can drive it offline.
+    """
+    from muse_grow.grow import _mockup_from_work, real_mockup
+
+    if mockup_fn is not None:
+        return mockup_fn(work, seed), True
+    if seed is not None and os.environ.get("MUSE_L1_LIVE"):
+        return real_mockup(work, seed, provider), True
+    return _mockup_from_work(work), False
+
+
 def run_script(script: Script, seed_path: str, era="baroque",
-               work=None, mockup_fn=None):
+               work=None, mockup_fn=None, provider=None):
     """Compile each step and report per-step survival.
 
-    mockup_fn: work → Mockup. Defaults to the deterministic stand-in used
-    by the probe/grow harnesses (the real L1 swaps it, same pin).
+    mockup_fn: (work, seed) → Mockup. When omitted the deterministic
+    stand-in is used unless MUSE_L1_LIVE is set, in which case the real L1
+    generate loop is used (same pin as muse_grow).
     Returns (last_candidate_seed, [StepReport]). The script is a drill —
     it dry-runs each step in sequence on the running candidate, then
     checks survival of *each* against the base.
     """
     from muse_rehearse import parse_directive, compile_directive
     from muse_seed import load_seed
-    from muse_grow.grow import _mockup_from_work
-    from muse_distill import extract_interpretation
 
     base = load_seed(open(seed_path).read(), fmt="yaml")
-    mockup_fn = mockup_fn or _mockup_from_work
     reports = []
     candidate = base
+    base_mockup = cand_mockup = None
+    live = False
+    if work is not None:
+        base_mockup, live = _build_mockup(work, base, mockup_fn, provider)
     for step in script.steps:
         d = parse_directive(step.directive, seed=base, work=work)
         candidate = compile_directive(d, candidate, era, work)
-        reports.append(check_survival(step, base, candidate, work, mockup_fn))
+        if work is not None:
+            cand_mockup, _ = _build_mockup(work, candidate, mockup_fn, provider)
+        reports.append(check_survival(step, base, candidate, work, mockup_fn,
+                                      base_mockup=base_mockup,
+                                      candidate_mockup=cand_mockup,
+                                      live=live))
     return candidate, reports
 
 
@@ -120,32 +146,65 @@ class StepReport:
     candidate_value: object
     verdict: str              # moved | flat | drifted
     expect_note: str = ""
+    render_measure: str = "velocity_pstdev"
+    render_base: object = None
+    render_candidate: object = None
+    render_verdict: str = "stand-in-blocked"
 
     def to_dict(self):
         return {"directive": self.directive, "verb": self.verb,
                 "measure": self.measure, "expected": self.expected,
                 "base": self.base_value, "candidate": self.candidate_value,
-                "verdict": self.verdict, "note": self.expect_note}
+                "verdict": self.verdict, "note": self.expect_note,
+                "render": {"measure": self.render_measure,
+                           "base": self.render_base,
+                           "candidate": self.render_candidate,
+                           "verdict": self.render_verdict}}
 
 
-def check_survival(step, base_seed, candidate_seed, work, mockup_fn):
-    """Did this directive survive? Measured at the seed-param level: did the
-    compiled knob actually land in the candidate seed (and stay within
-    budget)? The render/mockup level is marked stand-in-blocked — the
-    deterministic stand-in produces a flat mockup regardless of seed, so a
-    render-level survival check is only meaningful once the real L1 lands
-    (R1 §What R3 builds; L1.11 #276 swaps MOCKUP_FN).
+def _render_survival(base_mockup, candidate_mockup, live):
+    """(base, candidate, verdict) for the render lane, or the stand-in marker.
+
+    Only the live generate loop can move the mockup in seed-dependent ways;
+    the deterministic stand-in is flat regardless of seed, so the lane
+    reports "stand-in-blocked" rather than a misleading `flat`. When live and
+    both mockups exist, compare the distilled velocity spread and per-part
+    gains: `moved` when either differs, else `flat`.
     """
-    from muse_seed.params import ERA_BUDGETS
+    if not live or base_mockup is None or candidate_mockup is None:
+        return None, None, "stand-in-blocked"
+    from muse_distill import extract_interpretation
 
+    b_i = extract_interpretation(base_mockup)
+    c_i = extract_interpretation(candidate_mockup)
+    moved = (c_i.velocity_pstdev != b_i.velocity_pstdev
+             or c_i.part_gains != b_i.part_gains
+             or c_i.tempo_curve_shape != b_i.tempo_curve_shape)
+    return b_i.velocity_pstdev, c_i.velocity_pstdev, ("moved" if moved else "flat")
+
+
+def check_survival(step, base_seed, candidate_seed, work, mockup_fn,
+                   base_mockup=None, candidate_mockup=None, live=False):
+    """Did this directive survive?
+
+    Two lanes. The seed-param lane asks whether the compiled knob actually
+    landed in the candidate seed: `moved`/`flat`/`drifted`. The render lane
+    asks whether the change survived realization into a mockup: with the
+    deterministic stand-in it reports "stand-in-blocked" (flat regardless of
+    seed); with the real L1 generate loop (MUSE_L1_LIVE, #276) it compares
+    the distilled interpretation (velocity spread, part gains, curve shape)
+    and reports `moved`/`flat`.
+    """
     verb = step.directive.split(":", 1)[0].split()[0].rstrip(":").lower()
     measure, expected = VERB_MEASURES.get(verb, (None, None))
-    budget = ERA_BUDGETS["baroque"]
     base_v, cand_v, verdict = _seed_survival(verb, base_seed, candidate_seed)
+    rb, rc, rv = _render_survival(base_mockup, candidate_mockup, live)
     return StepReport(directive=step.directive, verb=verb,
                       measure=measure or "—", expected=expected or "—",
                       base_value=base_v, candidate_value=cand_v,
-                      verdict=verdict, expect_note=step.expect)
+                      verdict=verdict, expect_note=step.expect,
+                      render_base=rb, render_candidate=rc,
+                      render_verdict=rv)
 
 
 def _seed_survival(verb, base, cand):

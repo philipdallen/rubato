@@ -41,14 +41,19 @@ def _mockup_from_work(work):
     return mockup
 
 
-def real_mockup(work, seed):
+def real_mockup(work, seed, provider=None):
     """The real L1 generate loop (L1.11 #276): generate → validate → fix
     via the founder-chosen ManualProvider conversation path. Returns the
-    session-shape mockup converted to the Mockup dataclass."""
+    session-shape mockup converted to the Mockup dataclass.
+
+    `provider` overrides the default conversation path (tests pass a
+    RecordedProvider fixture so the loop runs offline)."""
     from muse_generate import generate_mockup
     from muse_provider import default_provider
     from muse_mockup import Mockup, Note
-    mockup, _ = generate_mockup(seed, work, default_provider(live=False))
+    if provider is None:
+        provider = default_provider(live=False)
+    mockup, _ = generate_mockup(seed, work, provider)
     m = Mockup(work_id=mockup["work_id"])
     for part_id, notes in mockup["parts"].items():
         for nd in notes:

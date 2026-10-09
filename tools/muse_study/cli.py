@@ -38,6 +38,10 @@ def main(argv=None):
     r.add_argument("script", choices=sorted(SCRIPTS))
     r.add_argument("seed")
     r.add_argument("--era", default="baroque")
+    r.add_argument("--live", action="store_true",
+                   help="use the real L1 generate loop (mirrors "
+                        "MUSE_L1_LIVE in muse_grow); default is the "
+                        "deterministic stand-in")
     args = ap.parse_args(argv)
 
     if args.cmd == "list":
@@ -49,12 +53,17 @@ def main(argv=None):
     seed = load_seed(open(_resolve(args.seed)).read(), fmt="yaml")
     work = load_work(_resolve(seed.provenance["source"])) \
         if seed.provenance.get("source") else None
+    if args.live:
+        # mirror muse_grow's gate: the live loop is selected by MUSE_L1_LIVE
+        os.environ["MUSE_L1_LIVE"] = "1"
     _, reports = run_script(script, _resolve(args.seed), args.era, work)
     print(f"# {script.name} — {script.issue}\n")
     for rep in reports:
         print(f"[{rep.verdict:12s}] {rep.directive}")
         print(f"               knob {rep.measure}: {rep.base_value} -> "
               f"{rep.candidate_value}  ({rep.expect_note})")
+        print(f"               render {rep.render_measure}: {rep.render_base} -> "
+              f"{rep.render_candidate}  ({rep.render_verdict})")
     return 0
 
 

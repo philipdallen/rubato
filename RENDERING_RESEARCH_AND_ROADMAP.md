@@ -267,6 +267,10 @@ The experiment is therefore mostly **assembly and recording**, not new
 machinery — which is the point: it establishes whether the current approach
 works before new machinery is justified.
 
+**Filed as [#380](https://github.com/philipdallen/rubato/issues/380)** (seed
+level). The render-level column awaits
+[#381](https://github.com/philipdallen/rubato/issues/381).
+
 ---
 
 ## 10. The MIDI-bottleneck investigation (the showerhead question)
@@ -288,6 +292,7 @@ transitions. This isolates the sound-generation bottleneck (H3/H5). The
 renderer tiers are already named in
 [l2-performance-renderer.md](docs/design/l2-performance-renderer.md) and the
 sample-ceiling waiver in [l5-sample-waiver.md](docs/design/l5-sample-waiver.md).
+**Filed as [#382](https://github.com/philipdallen/rubato/issues/382).**
 
 **Path C — Alternative representations and neural synthesis.**
 Investigate MIDI 2.0, richer per-note control, orchestral articulation
@@ -365,3 +370,16 @@ engineering task small and falsifiable.
   — the walkable coaching chain.
 - [docs/decision-log.md](docs/decision-log.md) — where this doc's decisions land.
 - [docs/pipeline.md](docs/pipeline.md) — the plan of record this feeds.
+
+## Filed follow-ups
+
+The synthesis's next steps are filed as tasks (one task = one issue, per
+[TASK_WORKFLOW.md](TASK_WORKFLOW.md)):
+
+- [#380](https://github.com/philipdallen/rubato/issues/380) — RR1: run the
+  first experiment at the seed level (this doc, §9).
+- [#381](https://github.com/philipdallen/rubato/issues/381) — RR2: wire the
+  real L1 generate loop into the study/probe survival path (the render-level
+  bridge §9 depends on).
+- [#382](https://github.com/philipdallen/rubato/issues/382) — RR3: sfizz/SFZ
+  renderer tier + same-mockup portability A/B (§10 Path B; H3/H5).

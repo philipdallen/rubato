@@ -1,0 +1,53 @@
+format_version: '0.1'
+work_id: bwv227.1
+title: Bach BWV227.1 — seed example
+params:
+  tempo:
+    min_bpm: 62
+    max_bpm: 129
+    default_bpm: 96
+  energy:
+    level: 0.5
+    shape: arch
+  density:
+    min_notes_per_beat: 0.5
+    max_notes_per_beat: 4
+  variation:
+    level: 1
+    points: []
+  part_gains:
+    P4: 1.1
+philosophy:
+  tempo_philosophy:
+  - flexible
+  - architectural
+  dynamic_philosophy:
+  - terraced
+  - dramatic
+  articulation_stance:
+  - sing the chorale
+  - breathe at phrase ends
+  provenance:
+    author: openhands-agent
+    ai_assisted: true
+variation_points:
+- region:
+  - 0
+  - 152
+  kind: tempo_flex
+  budget: 0.2
+  assertions: {}
+assertions:
+  register:
+    part: P4
+    min: C2
+    max: C4
+  tempo_bounds:
+    min_bpm: 60
+    max_bpm: 130
+provenance:
+  source: corpus/bach/bwv227.1.mxl
+  author: openhands-agent
+  ai_assisted: true
+  extends: a1aab4cf2ecb4b45399e82749eeb5c6e740d0631c064e177e1a4d45a353fc452
+  operation: muse_rehearse@1

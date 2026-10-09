@@ -1,0 +1,119 @@
+{
+ "ok": true,
+ "probes": {
+  "assertions": {
+   "assertions": [
+    {
+     "kind": "register",
+     "status": "pass"
+    },
+    {
+     "kind": "tempo_bounds",
+     "status": "pass"
+    }
+   ],
+   "failed": 0,
+   "passed": 2
+  },
+  "budget_fit": {
+   "checks": [
+    {
+     "budget": [
+      88,
+      120
+     ],
+     "default_position": "center",
+     "inside": false,
+     "param": "tempo",
+     "range": [
+      62,
+      129
+     ],
+     "span_fraction": 2.094
+    }
+   ],
+   "era": "baroque",
+   "provisional": false
+  },
+  "coverage": {
+   "coverage": 1.0,
+   "exercised": 1,
+   "unused": [],
+   "variation_points": 1
+  },
+  "delta_curves": {
+   "note": "mockup is the deterministic stand-in; LLM-shaped curves arrive with the real L1",
+   "parts": {
+    "P1": {
+     "drift_ratio": 1.0,
+     "mockup_ioi_mean": 2.483,
+     "source_ioi_mean": 2.483
+    },
+    "P2": {
+     "drift_ratio": 1.0,
+     "mockup_ioi_mean": 2.087,
+     "source_ioi_mean": 2.087
+    },
+    "P3": {
+     "drift_ratio": 1.0,
+     "mockup_ioi_mean": 1.92,
+     "source_ioi_mean": 1.92
+    },
+    "P4": {
+     "drift_ratio": 1.0,
+     "mockup_ioi_mean": 1.973,
+     "source_ioi_mean": 1.973
+    }
+   }
+  },
+  "determinism": {
+   "notes": 279,
+   "stable": true
+  },
+  "fidelity_guard": {
+   "extra": 0,
+   "fidelity": true,
+   "missing": 0,
+   "mockup_notes": 279,
+   "score_notes": 279
+  },
+  "lineage": {
+   "hops": [
+    {
+     "child": "seeds/bwv227.1.v5.seed.yaml",
+     "parent": "seeds/bwv227.1.directives/rr1-b-coached.directive.txt",
+     "pointer": "c36ee083078e1a229989400c61f17792f9c276d5703a0edc75bfa794179b9c3f",
+     "status": "verified"
+    },
+    {
+     "child": "seeds/bwv227.1.directives/rr1-b-coached.directive.txt",
+     "parent": "",
+     "pointer": "",
+     "status": "root"
+    }
+   ],
+   "status": "verified"
+  },
+  "param_diff": {
+   "changes": {
+    "variation_points": {
+     "from": [],
+     "to": [
+      {
+       "assertions": {},
+       "budget": 0.2,
+       "kind": "tempo_flex",
+       "region": [
+        0,
+        152
+       ]
+      }
+     ]
+    }
+   },
+   "status": "compared"
+  }
+ },
+ "seed_id": "bwv227.1",
+ "work_id": "bwv227.1"
+}

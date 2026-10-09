@@ -1,0 +1,1 @@
+rebalance: bring P4 up at bar 5

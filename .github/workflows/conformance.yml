@@ -35,8 +35,13 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
-      - name: Install runtime deps
-        run: pip install mido matplotlib pyyaml pytest
+      # Full tier includes qa_frontend, which imports playwright; run_tests.sh
+      # then installs the chromium binary. Install the full test requirements
+      # (not just runtime deps) so the browser step has its module — with only
+      # mido/matplotlib/pyyaml/pytest, the --full run dies at the chromium
+      # install with "No module named playwright".
+      - name: Install test deps
+        run: pip install -r tools/requirements.test.txt
       - name: Slow conformance (Beethoven 9, ~30–35s)
         run: |
           ./tools/run_tests.sh --full                # 13 suites incl. B9 (allow-fail)

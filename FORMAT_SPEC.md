@@ -307,7 +307,38 @@ mockup ──distill──▶ improved prompt (new seed) ──▶ next mockup i
   "worth listening to" bar — no DAW engineering required) → neural (later).
   The event stream / mockup contract is the seam; renderers compete below it.
 
-## 6.1 Source-agnostic seed authoring
+## 6.1 Layer boundaries (interpretation vs. rendering)
+
+Four layers are kept separate by construction (decision D22; full framing in
+[RENDERING_RESEARCH_AND_ROADMAP.md](RENDERING_RESEARCH_AND_ROADMAP.md)):
+
+1. **Score** (`roll.bin`) — the fixed work.
+2. **Interpretation** — the seed's sanctioned space plus the
+   performance-specific coaching history (directives, revisions, precedence).
+3. **Performance representation** — the mockup: the single carrier of
+   interpretive intent across the renderer seam.
+4. **Rendering** — the engine and its settings, which translate the mockup
+   but never invent interpretation.
+
+Two format consequences:
+
+- **Coaching history is preserved, not flattened.** A performance-specific
+  history is a chain of revisions over the seed (directive → seed → mockup →
+  revised seed), walked by hashed `extends`/`seed_hash` links — see
+  [proposal-lineage-chain.md](docs/design/proposal-lineage-chain.md) and
+  [r1-rehearsal-directives.md](docs/design/r1-rehearsal-directives.md). New
+  coaching applies to the current revision; it is never silently replaced by
+  assumptions drawn from an earlier performance of the same work.
+- **Renderer-specific settings are not artistic intent.** Sample library,
+  engine choice, and mix configuration live with the renderer (or as
+  `performances/*.perf` metadata), never in the seed. A rendering improvement
+  that needs new intent amends the representation upstream, not the renderer.
+
+Global and local scopes, revisions, precedence, and explicit departures from
+notation are expressed in the seed/prompt layer (§5) and the directive grammar
+(R1), not encoded as new score constructs: the score stays fixed (D1).
+
+## 6.2 Source-agnostic seed authoring
 
 The prompt is authored from **any source**, via the IR (the canonical
 event-stream representation every tool shares):

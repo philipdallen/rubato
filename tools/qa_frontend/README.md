@@ -46,6 +46,10 @@ is a one-time environment cost; CI caches it). Live count:
   (`test_anchor_fragments.py` — #313)
 - every served page fits a six-width sweep (320/375/768/900/1024/1280) with
   the offending element named on failure (`test_mobile_widths.py` — #314)
+- the coaching console: the Rehearse pane's committed-directive log, its
+  CLI hint, and the audio manifest/players; gaps are pinned as `xfail`
+  so a green run that gains an XPASS flags the fix
+  (`test_workbench_rehearse.py` — #388, #389)
 
 ## Mobile overflow: the shared helper
 

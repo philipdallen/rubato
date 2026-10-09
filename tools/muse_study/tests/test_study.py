@@ -137,6 +137,27 @@ def test_render_lane_flat_when_mockup_unchanged(base_seed, work):
     assert all(r.render_verdict == "flat" for r in reports)
 
 
+def test_render_lane_detects_rubato_spread_only(base_seed, work):
+    """rubato_pstdev_ms is load-bearing: a mockup whose part counts, velocity,
+    and tempo shape are identical but whose onset-offset spread tracks the
+    seed must still read `moved`. (Pins the DoD field list.)"""
+    from muse_mockup import Mockup, Note
+
+    def _mock(work, seed):
+        gains = seed.params.get("part_gains", {}) if seed is not None else {}
+        p4 = float(gains.get("P4", 1.0))
+        offsets = [0.0, 0.0, 0.0, round(p4 * 10, 3)]
+        m = Mockup(work_id="bwv227.1")
+        for i, off in enumerate(offsets):
+            m.notes.append(Note(pitch=60, onset=i, duration=1, velocity=90,
+                                part="P1", onset_offset_ms=off))
+        return m
+
+    _, reports = run_script(SCRIPTS["quiet-the-bass"], SEED_PATH, work=work,
+                            mockup_fn=_mock)
+    assert all(r.render_verdict == "moved" for r in reports)
+
+
 def test_live_path_runs_offline_with_recorded_provider(work, monkeypatch):
     """The live generate loop (MUSE_L1_LIVE) runs offline behind a
     RecordedProvider fixture, mirroring the muse_generate suite."""

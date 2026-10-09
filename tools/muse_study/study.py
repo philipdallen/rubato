@@ -173,8 +173,9 @@ def _render_survival(base_mockup, candidate_mockup, live):
     Only the live generate loop can move the mockup in seed-dependent ways;
     the deterministic stand-in is flat regardless of seed, so the lane
     reports "stand-in-blocked" rather than a misleading `flat`. When live and
-    both mockups exist, compare the distilled velocity spread and per-part
-    gains: `moved` when either differs, else `flat`.
+    both mockups exist, compare the distilled `Interpretation` fields the
+    issue names — velocity spread, rubato spread, per-part gains and curve
+    shape: `moved` when any differs, else `flat`.
     """
     if not live or base_mockup is None or candidate_mockup is None:
         return None, None, "stand-in-blocked"
@@ -183,6 +184,7 @@ def _render_survival(base_mockup, candidate_mockup, live):
     b_i = extract_interpretation(base_mockup)
     c_i = extract_interpretation(candidate_mockup)
     moved = (c_i.velocity_pstdev != b_i.velocity_pstdev
+             or c_i.rubato_pstdev_ms != b_i.rubato_pstdev_ms
              or c_i.part_gains != b_i.part_gains
              or c_i.tempo_curve_shape != b_i.tempo_curve_shape)
     return b_i.velocity_pstdev, c_i.velocity_pstdev, ("moved" if moved else "flat")

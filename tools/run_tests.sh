@@ -186,6 +186,10 @@ for s in "${ALL_SUITES[@]}"; do
     printf "PASS  %-16s %4ss    %s\n" "$name" "$dur" "$(tail -1 "$RESULTS_DIR/$idx.out")"
   else
     printf "FAIL  %-16s %4ss    %s\n" "$name" "$dur" "$(tail -1 "$RESULTS_DIR/$idx.out")"
+    # The last line is only the count; pytest's short-summary section names
+    # each failing test (#384). Surface those ids so a CI-only failure can be
+    # triaged from the log without a local reproduction.
+    grep -E '^(FAILED|ERROR) ' "$RESULTS_DIR/$idx.out" | sed 's/^/      /'
     failures=$((failures + 1))
   fi
   idx=$((idx + 1))

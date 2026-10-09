@@ -108,6 +108,22 @@ def test_exit_code_equals_failure_count(tmp_path):
     assert [ln.split()[0] for ln in lines] == ["PASS", "FAIL", "PASS"]
 
 
+# --- Failing test id surfaced on FAIL rows (issue #384) ---
+
+def test_fail_row_surfaces_failing_test_id(tmp_path):
+    """On FAIL, the recorded output's last line is only the count; the report
+    must also name the failing test id from pytest's short summary, or a
+    CI-only failure cannot be triaged without a local reproduction (#384)."""
+    bad = tmp_path / "bad_suite"
+    _write_suite(str(bad), "def test_c():\n    assert False\n")
+    script = _patched_runner(tmp_path, [("synth_bad", str(bad))])
+    r = _run(script, "--jobs", "1")
+    assert r.returncode == 1, r.stdout + r.stderr
+    fail_line = next(ln for ln in r.stdout.splitlines() if ln.startswith("FAIL"))
+    assert fail_line.split()[0] == "FAIL"  # existing contract intact
+    assert "::test_c" in r.stdout, f"failing test id not surfaced:\n{r.stdout}"
+
+
 # --- Slow-marker split ---
 
 MARKED_SUITE = """import pytest

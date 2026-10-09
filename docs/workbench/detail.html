@@ -54,6 +54,26 @@
   /* Offset the scroll target so a jumped-to row is not flush to the top. */
   .wb-rev { scroll-margin-top:1rem; }
 
+  /* Rehearse pane (R1 W-B pane layouts): a full-row card split internally
+     into the Study log (left half) and the interactive Rehearse half (right).
+     The pane carries no mockup JSON (D20) — the dry-run preview is the
+     seed-to-seed param diff only. */
+  .rehearsal-split { display:grid; grid-template-columns: 1fr 1fr; gap:1rem; }
+  @media (max-width: 900px) { .rehearsal-split { grid-template-columns: 1fr; } }
+  .rehearsal-split > * { min-width: 0; }
+  .rehearse-head { font-size:.72rem; color:#8b949e; text-transform:uppercase;
+    letter-spacing:.05em; margin:.2rem 0 .5rem; }
+  .rehearse textarea { width:100%; box-sizing:border-box; background:#0d1117;
+    color:#c9d1d9; border:1px solid #30363d; border-radius:6px; padding:.4rem;
+    font:inherit; font-size:.78rem; min-height:3.4rem; resize:vertical; }
+  .rehearse-actions { display:flex; gap:.4rem; margin:.5rem 0; flex-wrap:wrap; }
+  .rehearse-actions button { background:#21262d; color:#c9d1d9;
+    border:1px solid #30363d; border-radius:6px; padding:.3rem .7rem;
+    cursor:pointer; font:inherit; font-size:.75rem; }
+  .rehearse-actions button:hover { border-color:#58a6ff; color:#58a6ff; }
+  .rehearse-status { font-size:.75rem; color:#8b949e; margin:.3rem 0; }
+  .rehearse-preview table { margin-top:.3rem; }
+
   /* site-nav - shared QA surface nav (issue #304). The markup and CSS are
      identical on every page; test_workbench_nav pins the drift. */
   .site-nav { display:flex; flex-wrap:wrap; gap:.35rem .9rem; align-items:baseline;
@@ -80,6 +100,18 @@
 <script>
 async function loadJSON(p) { const r = await fetch(p); return r.ok ? r.json() : null; }
 async function loadText(p) { const r = await fetch(p); return r.ok ? r.text() : null; }
+
+// Runner URL for the Rehearse pane's POST /api/run, resolved the same way as
+// the terminal page: ?runner=… query, then window.MUSE_RUNNER_URL, then a
+// <meta name="muse-runner-url">. '' means same origin (the runner serves the
+// static site and /api together), so no host/port is hard-coded (#305).
+function resolveRunnerUrl() {
+  const meta = document.querySelector('meta[name="muse-runner-url"]');
+  const fromMeta = meta && meta.getAttribute('content');
+  const fromQuery = new URLSearchParams(location.search).get('runner');
+  return fromQuery || window.MUSE_RUNNER_URL || fromMeta || '';
+}
+const RUNNER_URL = resolveRunnerUrl();
 
 // A *failed* fetch (network abort, or a missing file the server answers as a
 // network error) rejects rather than resolving to null, so awaiting it
@@ -191,16 +223,111 @@ function growthPanel(workId, data) {
     <p class="note">per-trait verdicts from the distiller's iteration compare</p></div>`;
 }
 
-function rehearsalPanel(workId, directives) {
+function rehearsalPanel(workId, directives, baseFile) {
   const rows = (directives && directives.directives || []).map(d => `
     <div class="probe"><span>${d.slug}</span>
       <span class="tag ${d.lineage === 'verified' ? 'ok' : ''}">${d.lineage}</span></div>
     <div class="probe-detail"><p class="note">${d.text}</p></div>`).join('');
+  const seedPath = `seeds/${baseFile || workId + '.seed.yaml'}`;
   return `<div class="card rehearsal"><h3>Rehearse — ${workId}</h3>
-    <p class="note">dry-run a directive with
-    <code>tools/muse_rehearse/cli.py dry-run seeds/${workId}.seed.yaml "&lt;directive&gt;"</code>,
-    then <code>commit</code> — this pane shows the committed rehearsal log.</p>
-    ${rows || '<p class="note">no directives committed yet</p>'}</div>`;
+    <div class="rehearsal-split">
+      <div class="study">
+        <div class="rehearse-head">Study — committed directive log</div>
+        ${rows || '<p class="note">no directives committed yet</p>'}
+      </div>
+      <div class="rehearse" data-seed="${seedPath}">
+        <div class="rehearse-head">Rehearse — directive</div>
+        <textarea class="rehearse-input" aria-label="rehearsal directive"
+          placeholder="phrase: quieter at bar 8"></textarea>
+        <div class="rehearse-actions">
+          <button class="rehearse-dry-run">Dry run</button>
+          <button class="rehearse-commit">Commit</button>
+          <button class="rehearse-discard">Discard</button>
+        </div>
+        <p class="rehearse-status note">dry run previews the param diff and writes
+        nothing; only Commit writes the directive file + revision.</p>
+        <div class="rehearse-preview"></div>
+      </div>
+    </div></div>`;
+}
+
+// A committed-directive slug from the directive text (matches the CLI's
+// convention of a short kebab slug, e.g. "quieter-bar-8").
+function rehearseSlug(text) {
+  return String(text).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+// Render the seed-to-seed param diff (the dry-run preview). No mockup JSON:
+// the diff is the same row format as the probe panel's delta table (R1).
+function rehearsePreview(diff) {
+  const changes = diff && diff.changes ? diff.changes : {};
+  const keys = Object.keys(changes);
+  if (!keys.length) return '<p class="note">no param changes — the directive is a no-op.</p>';
+  const rows = keys.map(k => {
+    const c = changes[k] || {};
+    const from = JSON.stringify(c.from), to = JSON.stringify(c.to);
+    return `<tr><td>${k}</td><td>${from}</td><td>${to}</td></tr>`;
+  }).join('');
+  return `<table><tr><th>param</th><th>from</th><th>to</th></tr>${rows}</table>`;
+}
+
+// Wire the Rehearse half: Dry run / Commit POST to the runner, Discard clears.
+// Only Commit persists (R2 item 7) — the CLI's dry-run path writes nothing.
+function wireRehearsePane(scope) {
+  const pane = scope.querySelector('.rehearse');
+  if (!pane) return;
+  const input = pane.querySelector('.rehearse-input');
+  const preview = pane.querySelector('.rehearse-preview');
+  const status = pane.querySelector('.rehearse-status');
+  const seedPath = pane.dataset.seed;
+
+  const post = async (name, args) => {
+    try {
+      const r = await fetch(RUNNER_URL + '/api/run', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, args }),
+      });
+      return await r.json();
+    } catch (e) {
+      return { ok: false, error: 'runner unreachable — start it with '
+        + 'python3 tools/muse_workbench_runner/server.py --docs' };
+    }
+  };
+
+  pane.querySelector('.rehearse-dry-run').onclick = async () => {
+    const text = input.value.trim();
+    if (!text) { status.textContent = 'enter a directive first.'; return; }
+    status.textContent = 'dry-running…';
+    const j = await post('muse_rehearse.dry-run', [seedPath, text]);
+    if (!j.ok) {
+      preview.innerHTML = '';
+      status.textContent = `error: ${j.error || (j.stderr || '').trim() || 'dry run failed'}`;
+      return;
+    }
+    let diff = null;
+    try { diff = JSON.parse(j.stdout); } catch (e) { diff = null; }
+    preview.innerHTML = diff ? rehearsePreview(diff)
+      : `<pre>${(j.stdout || '').replace(/[<>&]/g, '')}</pre>`;
+    status.textContent = 'dry run complete — nothing written.';
+  };
+
+  pane.querySelector('.rehearse-commit').onclick = async () => {
+    const text = input.value.trim();
+    if (!text) { status.textContent = 'enter a directive first.'; return; }
+    const slug = rehearseSlug(text);
+    if (!slug) { status.textContent = 'directive has no usable slug.'; return; }
+    status.textContent = 'committing…';
+    const j = await post('muse_rehearse.commit', [seedPath, slug, text]);
+    status.textContent = j.ok
+      ? `committed — ${(j.stdout || '').trim().split('\n').join(' · ')}`
+      : `error: ${j.error || (j.stderr || '').trim() || 'commit failed'}`;
+  };
+
+  pane.querySelector('.rehearse-discard').onclick = () => {
+    input.value = '';
+    preview.innerHTML = '';
+    status.textContent = 'discarded — nothing written.';
+  };
 }
 
 async function loadGrowth(workId) {
@@ -279,8 +406,9 @@ function slug(s) { return String(s).replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-
       }
       div.innerHTML = `<details class="wb-rev" id="${anchorId}"${open}><summary>${label}</summary><h2>${entry.work_id} <span class="tag ok">${probes && probes.ok ? 'passing' : 'no probes'}</span></h2>
         <div class="panel">${seedPanel(seed)}${probePanel(probes, entry.work_id)}${growthPanel(entry.work_id, growth)}${audioPanel(entry.work_id, audio)}</div>
-        ${rehearsalPanel(entry.work_id, directives)}</details>`;
+        ${rehearsalPanel(entry.work_id, directives, entry.file)}</details>`;
       container.appendChild(div);
+      wireRehearsePane(div);
     }
     renderJumps(jumps);
     if (!idx.seeds.length) {

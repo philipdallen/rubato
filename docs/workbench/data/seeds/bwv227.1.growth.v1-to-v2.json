@@ -1,23 +1,27 @@
 {
- "velocity_pstdev": {
-  "verdict": "growing",
-  "delta": 8.5
- },
- "rubato_pstdev_ms": {
-  "verdict": "growing",
-  "delta": 12.0
- },
- "budget_position": {
-  "verdict": "regressing",
-  "delta": -24.0
- },
- "mockup_richness": {
-  "verdict": "flat",
-  "delta": 0
- },
- "tempo_curve_shape": {
-  "verdict": "changed",
-  "from": "flat",
-  "to": "arch"
+ "work_id": "bwv227.1",
+ "compare": "v1 → v2",
+ "growth": {
+  "velocity_pstdev": {
+   "verdict": "growing",
+   "delta": 8.5
+  },
+  "rubato_pstdev_ms": {
+   "verdict": "growing",
+   "delta": 12.0
+  },
+  "budget_position": {
+   "verdict": "regressing",
+   "delta": -24.0
+  },
+  "mockup_richness": {
+   "verdict": "flat",
+   "delta": 0
+  },
+  "tempo_curve_shape": {
+   "verdict": "changed",
+   "from": "flat",
+   "to": "arch"
+  }
  }
 }

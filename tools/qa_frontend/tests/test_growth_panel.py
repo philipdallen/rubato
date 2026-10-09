@@ -38,6 +38,28 @@ def test_growth_panel_renders(server, session):
     assert "V1" in card.inner_text().upper()
 
 
+def test_growth_card_renders_once_per_work(server, session):
+    """Issue #389: growth is a per-work artifact (a single iteration compare),
+    so the card must render once for the work — not once under every revision.
+    Four revisions of bwv227.1 must yield exactly one Growth card."""
+    page = _goto(server, session)
+    cards = page.locator(".card", has_text="Growth")
+    assert cards.count() == 1, (
+        f"expected one growth card for bwv227.1, got {cards.count()}"
+    )
+    # and it belongs to the first (base) revision, not the collapsed tail
+    first = page.locator("details.wb-rev").first
+    assert first.locator(".card", has_text="Growth").count() == 1
+
+
+def test_growth_heading_names_the_compare(server, session):
+    """Issue #389: the heading reflects the compare's real endpoints rather
+    than a hardcoded pair. The committed artifact is the v1→v2 compare."""
+    page = _goto(server, session)
+    heading = page.locator(".card", has_text="Growth").first.locator("h3")
+    assert heading.inner_text().strip().lower() == "growth (v1 → v2)"
+
+
 def test_growth_traits_have_verdicts(server, session):
     page = _goto(server, session)
     card = page.locator(".card", has_text="Growth").first

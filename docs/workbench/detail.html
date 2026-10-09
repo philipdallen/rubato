@@ -170,15 +170,15 @@ function audioPanel(workId, audio) {
   return `<div class="card"><h3>Audio — seed revisions</h3>${players}</div>`;
 }
 
-function growthPanel(workId, growth) {
-  if (!growth) return '';
-  const rows = Object.entries(growth).map(([trait, info]) => {
+function growthPanel(workId, data) {
+  if (!data || !data.growth) return '';
+  const rows = Object.entries(data.growth).map(([trait, info]) => {
     const cls = info.verdict === 'growing' ? 'pass' : (info.verdict === 'regressing' ? 'fail' : '');
     const detail = info.delta !== undefined && info.delta !== null ? ` (${info.delta > 0 ? '+' : ''}${info.delta})` :
       (info.from ? ` (${info.from} → ${info.to})` : '');
     return `<div class="probe"><span>${trait}</span><span class="${cls}">${info.verdict}${detail}</span></div>`;
   }).join('');
-  return `<div class="card"><h3>Growth (v1 → v2)</h3>${rows}
+  return `<div class="card"><h3>Growth (${data.compare})</h3>${rows}
     <p class="note">per-trait verdicts from the distiller's iteration compare</p></div>`;
 }
 
@@ -241,6 +241,9 @@ function slug(s) { return String(s).replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-
     container.innerHTML = '';
     const jumps = [];
     const seenWork = new Set();
+    // Growth is a per-work artifact (one compare), not per revision; cache it
+    // so the card renders once, under the first revision of each work (#389).
+    const growthByWork = {};
     for (let i =  0; i < idx.seeds.length; i++) { const entry = idx.seeds[i]; const label = revisionLabel(entry.file); const open = (i === 0 ? " open" : "");
       // Per-revision anchor id (issue #304); the jump links target these.
       // Sanitized: a work_id carries a dot (bwv227.1), and a dot in an id
@@ -250,7 +253,11 @@ function slug(s) { return String(s).replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-
       const seedText = await loadText(`data/seeds/${entry.file}`);
       const seed = seedText ? parseSeedYaml(seedText) : null;
       const probes = await loadJSON(`data/seeds/${entry.probes}`);
-      const growth = await loadGrowth(entry.work_id);
+      // Load per work, render on the first revision only (see growthByWork).
+      if (!(entry.work_id in growthByWork)) {
+        growthByWork[entry.work_id] = await loadGrowth(entry.work_id);
+      }
+      const growth = seenWork.has(entry.work_id) ? null : growthByWork[entry.work_id];
       const directives = await loadJSON(`data/seeds/${entry.work_id}.directives.json`);
       const div = document.createElement('div');
       div.className = 'work';

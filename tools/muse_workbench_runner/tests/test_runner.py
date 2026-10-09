@@ -132,6 +132,20 @@ def test_all_commands_map_to_repo_tools():
         assert (ROOT / tool).exists(), f"{name}: {tool} missing"
 
 
+def test_rehearse_commands_registered():
+    """#393: the workbench runner exposes muse_rehearse.dry-run/commit so the
+    Rehearse pane can call them via /api/run."""
+    for name in ("muse_rehearse.dry-run", "muse_rehearse.commit"):
+        assert name in COMMANDS, f"{name} absent from COMMANDS"
+        assert COMMANDS[name][0] == "python3", f"{name}: expected python3 argv[0]"
+    assert COMMANDS["muse_rehearse.dry-run"][-1] == "dry-run"
+    assert COMMANDS["muse_rehearse.commit"][-1] == "commit"
+    r = Runner()
+    assert r.error is None
+    assert "muse_rehearse.dry-run" in r.available
+    assert "muse_rehearse.commit" in r.available
+
+
 class TestSameOriginStaticServing:
     """Issue #305: the server can serve docs/ and /api from one origin."""
 

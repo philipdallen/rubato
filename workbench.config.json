@@ -11,7 +11,9 @@
     "muse_diff.run",
     "muse_tests.fast",
     "muse_generate.prompt",
-    "muse_generate.mockup"
+    "muse_generate.mockup",
+    "muse_rehearse.dry-run",
+    "muse_rehearse.commit"
   ],
   "prompt_enabled": true,
   "reach": "sandbox-only",

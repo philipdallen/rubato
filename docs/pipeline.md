@@ -176,6 +176,31 @@ Design docs: [design/w6-b9-scaling.md](design/w6-b9-scaling.md),
 | R — Rehearsal directives | typed NL→seed-revision grammar (R1), workbench Study/Rehearse pane (R2), conductor-training scripts + feedback (R3); directives are lineage roots | [design](design/r1-rehearsal-directives.md); R1 [#282](https://github.com/philipdallen/rubato/issues/282), R2 [#283](https://github.com/philipdallen/rubato/issues/283), R3 [#284](https://github.com/philipdallen/rubato/issues/284) |
 | F — Form curve | windowed compressibility (F1 `muse_form`) → viz track (F2) → structural assertion + distill/compare metric (F3); evidence layer, not a generation target | [design](design/f1-form-curve.md); F1 [#296](https://github.com/philipdallen/rubato/issues/296), F2 [#297](https://github.com/philipdallen/rubato/issues/297), F3 [#298](https://github.com/philipdallen/rubato/issues/298) |
 
+## Research direction — rendering and interpretation (2026-10)
+
+PRIOR_ART_REVIEW.md records *what exists*; the rendering research synthesis
+([RENDERING_RESEARCH_AND_ROADMAP.md](../RENDERING_RESEARCH_AND_ROADMAP.md))
+records *what to build, what is uncertain, and what evidence would change the
+direction*. It is a direction record, not a plan of record. Its near-term
+sequence, which this plan absorbs:
+
+- **Document the landscape** — consolidate notation-playback,
+  expressive-performance, LLM-coaching, and alternative-rendering research
+  into [PRIOR_ART_REVIEW.md](../PRIOR_ART_REVIEW.md).
+- **Formalize the performance history** — coaching scope, precedence,
+  revisions, and score exceptions inspectable and reproducible (R-series +
+  lineage chain; finish the walk).
+- **Validate the current representation** — a coaching instruction produces a
+  measurable, correctly scoped change (the synthesis's first experiment §9).
+- **Separate musical quality from audio quality** — identical performance data
+  across controlled rendering conditions.
+- **Evaluate with musicians** — walked when rendering conditions are credible.
+- **Choose the next technology from evidence** — not from assumptions.
+
+Related standing decision: **D22** (decision-log) — rendering and
+interpretation stay separable; a renderer consumes the mockup and never
+becomes the sole location of interpretive intent.
+
 ## Explicitly not (yet)
 
 - Public spec publication (pre-launch decision)

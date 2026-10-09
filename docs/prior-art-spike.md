@@ -38,6 +38,15 @@ demo quality" — section ensembles, basic articulations. Commercial
 "worth listening to" bar is achievable; "DG-tier" is not, with free samples.
 The VPO+Ardour template (sfizz + Dragonfly reverb) is the known-good recipe.
 
+> **Revalidated 2026-10-09.** Partly stale. Free **Spitfire Symphony
+> Orchestra Discover** (Nov 2025) ships 44 instruments and three legato
+> patches, so "free lacks true legato" no longer holds as a blanket claim.
+> This does **not** change the renderer recipe above: both free Spitfire
+> libraries are plugin-hosted (Spitfire's own plugin / Kontakt) and their
+> EULA forbids reformatting for another sampler and AI-training use, so they
+> cannot feed sfizz. The recipe stays SFZ-based. See
+> [design/l5-sample-waiver.md](design/l5-sample-waiver.md) §Free-tier update.
+
 ## T2 — IR → seed (seed authoring)
 
 | Borrow | What | Use |

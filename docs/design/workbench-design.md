@@ -22,6 +22,17 @@ read surface. The static/no-write-path framing in seed-workbench.md was
 over-cautious. This doc supersedes that constraint and specifies the
 interactive surface with proper sandbox/config boundaries.
 
+### The Rehearse pane is interactive, not read-only (resolved 2026-10-09)
+
+Issue #388 asked whether the shipped read-only Rehearse pane was a deliberate
+post-R2 safety decision, which would move the R2 spec items to a "not built"
+note. It was not: the records above resolve it to **build the interactive pane**.
+The R2 spec says the Rehearse pane **must write** — "contains the textarea +
+dry-run + commit/discard affordances" (R2 §Coverage item 6) — and this doc's
+Decision line states "the workbench should be an interactive surface, not a read
+surface". The read-only pane in `docs/workbench/detail.html` is the pre-R2
+scaffold, not a decision. R2 items 6-7 stand, to be finished by #393 and #394.
+
 ## Design questions resolved
 
 | Question | Resolution |

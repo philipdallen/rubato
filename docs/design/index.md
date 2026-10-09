@@ -27,7 +27,9 @@ incomplete. Design docs live here; user-facing docs live with the code.
 Supporting evidence: [../literature-review-w1.md](../literature-review-w1.md)
 (pre-draft lit review for W1/S-series scope), plus
 [../prior-art-spike.md](../prior-art-spike.md) (renderer/mockup component
-intel).
+intel), and the rendering research synthesis
+[../../RENDERING_RESEARCH_AND_ROADMAP.md](../../RENDERING_RESEARCH_AND_ROADMAP.md)
+(what to build next, what is uncertain, and the first controlled experiment).
 
 ## Maturity ladder
 

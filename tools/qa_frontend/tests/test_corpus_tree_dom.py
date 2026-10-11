@@ -27,6 +27,11 @@ def page(url):
     sess = PageSession()
     pg = sess.new_page()
     pg.goto(url)
+    # index.html builds ul.files from an async fetch of seeds/index.json.
+    # Reading the DOM straight after goto races that fetch — it wins on a
+    # fast dev box and loses on the slower CI runner, which is why this suite
+    # failed only on CI (0 == 13). Wait for the first row before returning.
+    pg.wait_for_selector("ul.files li")
     return sess, pg
 
 

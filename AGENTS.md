@@ -238,7 +238,7 @@ tools/muse_docs/      # T7 doc-prose lint (offline mechanical doc checks)
 tools/run_tests.sh    # unified test runner (fast/--full/--list)
 tools/spike/          # renderer/audio spike scripts (pre-workflow)
 SCHEMA_SPEC.md        # SUPERSEDED (JSON-schema v0) — design history only
-PRIOR_ART_REVIEW.md   # landscape review (schema-first era)
+PRIOR_ART_REVIEW.md   # landscape review (schema-first era + 08-25, 09-21 appendices)
 blockers/             # open_/closed_ blocker reports
 bugs/                 # open_/closed_ bug log (defects found in flight; review like blockers)
 tests/                # open_/closed_ test specs (runtime tests live beside the code)

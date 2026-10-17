@@ -1,7 +1,8 @@
 # Unified test runner deps (tools/run_tests.sh). Runtime deps for every
 # suite live here so one install command supports one runner call.
-pytest>=8
-mido>=1.3
-pyyaml
-matplotlib
-playwright  # qa_frontend suite (browser itself installs full-tier-only, see run_tests.sh)
+# Pinned exactly so advisory scanning covers them (see #355).
+pytest==9.1.1
+mido==1.3.3
+pyyaml==6.0.3
+matplotlib==3.11.2
+playwright==1.64.0  # qa_frontend suite (browser itself installs full-tier-only, see run_tests.sh)

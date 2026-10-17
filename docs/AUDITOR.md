@@ -91,7 +91,9 @@ exits without creating anything** — no issue, no comment, no status line.
 
 ### Architecture & drift, continued
 
-- **`stale-owner-ref`** — references to the retired account slug `allenpd728`
+- **`stale-owner-ref`** — references to a retired account slug (the exact slug
+  lives in `RETIRED_OWNER_SLUGS` in `tools/auditor.py` and is not repeated here,
+  because this file is itself scanned)
   surviving outside the frozen record. A clone URL, `--repo` example, or prose
   sentence that still names the old slug tells a reader or an agent to use an
   address that no longer resolves. The frozen decision and history logs are

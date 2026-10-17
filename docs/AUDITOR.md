@@ -10,7 +10,9 @@ action on its own.** Every finding is a proposal held for review.
   no token cost per run, nothing to hallucinate. Every finding is a mechanical
   fact about the tree. This is a deliberate choice: the checks below are all
   decidable by inspection, and a deterministic run is safe to re-trigger.
-- **Not a fixer.** It never edits code, merges, closes, or resolves anything.
+- **Not a fixer.** It never edits code, merges, or resolves anything. It closes
+  exactly one class of issue -- stale `Auditor digest` digests (see "Digest
+  retention" below) -- and never proposals.
 - **Not a second tracker.** It opens proposals and a digest; it does not move
   work through the pipeline.
 - **Not connected to the dashboard.** It writes one line to this repo's own
@@ -173,13 +175,26 @@ appends **one** line:
 
 ## Hard constraints (enforced, and tested)
 
-- Never merge, close, or auto-resolve anything.
+- Never merge or auto-resolve anything. The single sanctioned close is digest
+  retention (below); proposals (`auditor:proposed`/`auditor:revise`) are never
+  closed by automation.
 - Never add a claimable-status label — only the human does that, after review.
 - Never edit code. The only files it writes are `status/auditor_state.json` and
   `status_log.jsonl`.
 - Never touch the HuB repo or any other repo.
 - The analysis is read-only and takes no lock, so it cannot race a concurrent
   agent; the only shared state it mutates is appended under a single write.
+
+## Amended contract: digest retention
+
+One deliberate, scoped addition to the original contract (shipped 2026-10-17):
+
+- **Digest retention.** At the end of each daily run the auditor closes digest
+  issues older than the newest 7, selected by title prefix (`Auditor digest —`)
+  *and* the label set exactly `["on-hold"]`. Anything carrying
+  `auditor:proposed`/`auditor:revise` (or any other label) is never selected.
+  Closing is dedup-neutral: digest titles are date-unique and the auditor never
+  reopens closed issues.
 
 ## Running it by hand
 

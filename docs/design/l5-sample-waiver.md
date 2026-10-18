@@ -41,8 +41,8 @@ not know about. They change the **evidence** for the sample ceiling; they do
 
 | Library | Size | Content | Player | Legato |
 |---|---|---|---|---|
-| **BBC Symphony Orchestra Discover** | ~240 MB | 34 instruments + grand piano, 47 techniques, 1 mic | Spitfire's own VST3/AU/AAX plugin | none |
-| **Spitfire Symphony Orchestra Discover** (Nov 2025) | 5.68 GB | 44 instruments, 74 techniques, 11 solos, 1 mic | free Kontakt Player 7.5+ | **3 legatos** |
+| **BBC Symphony Orchestra Discover** | ~200 MB | 33 instruments, 47 techniques, 1 mixed signal | Spitfire's own VST3/AU/AAX plugin | none |
+| **Spitfire Symphony Orchestra Discover** (Nov 2025) | 5.68 GB | 44 instruments, 73 techniques, 11 solos, 1 mic | free Kontakt Player 7.5+ | **3 legatos** |
 
 (Also in this class: Orchestral Tools Berlin Free Orchestra, SINE Player.)
 
@@ -73,11 +73,12 @@ not know about. They change the **evidence** for the sample ceiling; they do
    libraries "for the purpose of training artificial intelligence (AI)
    systems or large language models (LLMs) without... express written
    consent". Rubato's current generate path is prompt-based and never
-   trains on samples, so it is unaffected. But the rendering roadmap's
-   **Path C** (neural synthesis, the `RENDERING_RESEARCH_AND_ROADMAP.md`
-   synthesis, tracked as [#382](https://github.com/philipdallen/rubato/issues/382))
-   must not ingest rendered Spitfire audio as training data without written
-   consent. Recorded here as a gate on that path.
+   trains on samples, so it is unaffected. But any future neural-synthesis
+   rendering path must not ingest rendered Spitfire audio as training data
+   without written consent. No such path is currently tracked in the issue
+   queue (the rendering research programme is proposed in
+   [#377](https://github.com/philipdallen/rubato/issues/377), still open);
+   recorded here as a standing gate in case one opens.
 4. **License intent.** The grant is "exclusively for the creation of new
    music and sound compositions". Rehearsal/research tooling sits close to
    this boundary; any productization using these libraries should re-check

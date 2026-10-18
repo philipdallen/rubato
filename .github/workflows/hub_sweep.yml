@@ -3,9 +3,11 @@ name: hub_sweep
 # Appends one status snapshot to status_log.jsonl for the HuB dashboard
 # (https://philipdallen.github.io/HuB/). See docs/HUB_STATUS_LOG.md.
 #
-# This repo is the writer; HuB only reads. Nothing here writes to any other
-# repo — the log is this repo's own file, on this repo's own branch, so there
-# is no cross-repo write surface to conflict on.
+# Where the log lives: the `status` branch, not `main`. `main` holds only
+# reviewed code, so a job that commits every 30 minutes cannot write there
+# without defeating branch protection. One branch, one writer.
+#
+# This repo is the writer; HuB reads the log from `status` (see HuB/config.json).
 
 on:
   schedule:
@@ -14,8 +16,8 @@ on:
     - cron: "*/30 * * * *"
   workflow_dispatch: {}
 
-# Needed to write the snapshot back to the branch (contents: write for the
-# push; issues: read for the flow counts).
+# Needed to write the snapshot back to the status branch (contents: write for
+# the push; issues: read for the flow counts).
 permissions:
   contents: write
   issues: read
@@ -30,21 +32,50 @@ jobs:
   sweep:
     runs-on: ubuntu-latest
     steps:
+      # The tooling and status/trl.json (human-authored, still on main) come
+      # from main; the log itself lives on the status branch below.
       - uses: actions/checkout@v7
         with:
           ref: main
-          fetch-depth: 0
+
+      # A second worktree of the SAME repo at the status branch. It carries
+      # the full log history, so the dashboard's trend charts keep continuity.
+      # Kept separate from main so neither branch is ever mid-edit for the
+      # other's files.
+      - name: Check out the status branch
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Create the branch on first run; thereafter track the remote.
+          #
+          # The fetch is required, not optional: actions/checkout fetches only
+          # the triggering ref, so `status` exists on the remote but has no
+          # local ref. `git worktree add .status-branch status` then fails with
+          # "fatal: invalid reference: status" even though ls-remote found it.
+          # That failure was invisible until the branch existed, because the
+          # orphan path was the only one ever taken.
+          if git ls-remote --exit-code --heads origin status >/dev/null 2>&1; then
+            git fetch origin "status:refs/heads/status"
+            git worktree add .status-branch status
+          else
+            echo "status branch does not exist yet; creating it"
+            git worktree add --orphan -b status .status-branch
+          fi
 
       - name: Append status snapshot
         env:
           # The default token is enough: issues are read from this repo only.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python3 tools/hub_sweep.py --repo ${{ github.repository }} --token-env GITHUB_TOKEN
+          python3 tools/hub_sweep.py \
+            --repo ${{ github.repository }} \
+            --token-env GITHUB_TOKEN \
+            --file .status-branch/status_log.jsonl
 
       - name: Commit and push if the log changed
         run: |
           set -e
+          cd .status-branch
           # Stage first, then test the index. `git diff --quiet -- <path>` is NOT
           # sufficient here: it ignores untracked files, so on a repo where the
           # sweep has just *created* status_log.jsonl it reports "no change" and
@@ -55,23 +86,19 @@ jobs:
             echo "no change; nothing to commit"
             exit 0
           fi
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           git commit -m "chore(hub): status snapshot [skip ci]"
 
-          # Multiple agents push to main continuously, so a single push can be
-          # rejected as non-fast-forward. Rebase and retry, per the repo's own
-          # protocol (docs/MULTI_AGENT_WORKFLOW.md): "On push rejection
-          # (non-fast-forward): git pull --rebase origin main ... push again."
-          # Never force-push -- the protocol forbids it because it would destroy
-          # a sibling's committed work.
+          # Retry on rejection, per the repo's own protocol
+          # (docs/MULTI_AGENT_WORKFLOW.md). Only this workflow writes to
+          # `status`, so a conflict is unlikely -- but a manual push or a
+          # second trigger could still race. Never force-push.
           for attempt in 1 2 3 4 5; do
-            if git push origin main; then
+            if git push origin status; then
               echo "pushed on attempt $attempt"
               exit 0
             fi
-            echo "push rejected; rebasing onto origin/main (attempt $attempt)"
-            git pull --rebase origin main
+            echo "push rejected; rebasing onto origin/status (attempt $attempt)"
+            git pull --rebase origin status
           done
           echo "push still rejected after 5 attempts" >&2
           exit 1

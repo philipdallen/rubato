@@ -28,7 +28,7 @@ tell claims apart. Without run-ids the re-fetch check in §Claiming has no teeth
   `bugs/README.md`). Reviewed the same way as `blockers/`: an `open_*` bug is
   live work.
 
-No `BLOCKERS.md`/`BUGS.md` index file — the directory listing is the index.
+No BLOCKERS.md/BUGS.md index file — the directory listing is the index.
 
 ## Task states
 
@@ -154,9 +154,9 @@ Rules for that line:
 - Say what you already know and where the ambiguity is, so the human can answer
   in one message rather than asking a clarifying question.
 
-This is what makes the whole blocker queue readable in one command — see
-`needs-audit.sh` in this repo's tooling, or the recipe in
-`automations/HUMAN_REVIEW.md`. A blocked comment without a `NEEDS:` line is
+This is what makes the whole blocker queue readable in one command. (A
+dedicated needs-audit.sh script and an automations/HUMAN_REVIEW.md recipe were
+sketched but never built.) A blocked comment without a `NEEDS:` line is
 considered incomplete.
 
 **2. "Not in my lane" — one line on your final comment, when you saw something.**

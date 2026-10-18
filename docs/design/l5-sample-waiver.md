@@ -88,8 +88,10 @@ not know about. They change the **evidence** for the sample ceiling; they do
 **Net:** the free Spitfire tier is the strongest *listening* evidence
 available at $0, and worth using when the founder's ear test opens. It is
 **not** the free *renderer* tier — that remains Sonatina SSO / VSCO 2 CE via
-sfizz. Revalidate these facts before relying on them; library terms and
-line-ups change.
+sfizz. The pick for the ear test: **Spitfire Symphony Orchestra Discover** —
+the only free-tier option with true legato (3 patches), and legato is the
+L5 failure criterion. Revalidate these facts before relying on them;
+library terms and line-ups change.
 
 ## Purpose
 

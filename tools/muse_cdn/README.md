@@ -57,13 +57,30 @@ manifest is short-cached (5 min). Version a library by uploading under a new
 
 ## Verify
 
+Two suites, one live and one hermetic.
+
 ```sh
+# Hermetic (fast tier, CI): local wrangler dev + local R2, no secret, no network.
+node tests/worker_hermetic_test.mjs
+# or via the unified runner (registers as the `muse_cdn` suite):
+./tools/run_tests.sh
+
+# Live end-to-end (operator/landing): needs the deployed URL and the real secret.
 node tests/worker_test.mjs "$RUBATO_CDN_URL" "$RUBATO_CDN_TOKEN"
 ```
 
-17 checks: auth gating, manifest shape, per-library fetch + sha256 match,
-Range/206, HEAD, and both regression pins. Last full run 2026-10-19:
-**17 passed, 0 failed**.
+`worker_hermetic_test.mjs` (14 checks) starts `wrangler dev` against a
+throwaway `--persist-to` directory, seeds `manifest.json` + one library file
+into the local R2 binding, and passes the token as a literal `--var` — so it
+needs no `CDN_TOKEN` and never touches the network. It covers auth gating,
+manifest shape, file fetch + sha256, `Range`/206, plain GET/200, HEAD, the
+percent-encoded-path regression, and the manifest POST/405 gate. It needs the
+`wrangler` CLI on `PATH` (or `WRANGLER_BIN`); the pytest wrapper skips if the
+CLI is absent, so a sandbox without a node toolchain does not fail the gate.
+
+`worker_test.mjs` (17 checks) is the live harness: auth gating, manifest shape,
+per-library fetch + sha256 match, Range/206, HEAD, and both regression pins.
+Last full run 2026-10-19: **17 passed, 0 failed**.
 
 ## Deploy
 

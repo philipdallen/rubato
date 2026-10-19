@@ -84,6 +84,9 @@ SUITES+=("muse_form:muse_form/tests")
 # Workbench audio bridge (fast tier): stand-in renders + manifest + live-path
 # wiring on recorded fixtures (no network).
 SUITES+=("muse_audio:muse_audio/tests")
+# CDN worker (fast tier, #423): hermetic suite against local wrangler dev +
+# local R2 binding — no CDN_TOKEN, no network. Skips if wrangler is absent.
+SUITES+=("muse_cdn:muse_cdn/tests")
 SLOW_SUITES=(
   "muse_analyze:muse_analyze"
   "muse_chain:muse_chain"

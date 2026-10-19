@@ -6,7 +6,7 @@ action on its own.** Every finding is a proposal held for review.
 
 ## What it is not
 
-- **Not an agent.** It is a deterministic script (`tooling/auditor.py`). No LLM,
+- **Not an agent.** It is a deterministic script (`tools/auditor.py`). No LLM,
   no token cost per run, nothing to hallucinate. Every finding is a mechanical
   fact about the tree. This is a deliberate choice: the checks below are all
   decidable by inspection, and a deterministic run is safe to re-trigger.
@@ -186,15 +186,15 @@ appends **one** line:
 ## Running it by hand
 
 ```bash
-python3 tooling/auditor.py --repo philipdallen/<repo> --dry-run   # print findings, write nothing
-python3 tooling/auditor.py --repo philipdallen/<repo>             # do a real run
-python3 tooling/auditor.py --repo philipdallen/<repo> --force     # ignore the checkpoint
+python3 tools/auditor.py --repo philipdallen/<repo> --dry-run   # print findings, write nothing
+python3 tools/auditor.py --repo philipdallen/<repo>             # do a real run
+python3 tools/auditor.py --repo philipdallen/<repo> --force     # ignore the checkpoint
 ```
 
 Tests are offline and stdlib-only:
 
 ```bash
-python3 tooling/tests/test_auditor.py
+python3 tools/auditor/tests/test_auditor.py
 ```
 
 ## Which parts of the spec were interpreted
@@ -212,7 +212,7 @@ Recorded rather than decided silently:
   a read-only auditor's remit. The digest note records the indirect signal
   instead: a gate count that does not match the number of executables.
 - **TODO/FIXME age threshold** (120 days) and the report cap (8) were chosen, not
-  specified. Both are constants at the top of `tooling/auditor.py`.
+  specified. Both are constants at the top of `tools/auditor.py`.
 - **Checkpoint location** — `status/auditor_state.json`, because `status/` already
   exists in this repo family and the spec forbade inventing a new location.
 - **`auditor:revise` is defined but not yet produced** by a built-in check. The

@@ -34,3 +34,8 @@ cd tools/s1_stream && python -m pytest
 
 6 tests: determinism, structure, round-trip verify, tamper detection,
 dynamics/hairpin serialization, unpitched preservation.
+
+`tests/test_s1_p1_golden_seam.py` (T4, #416): every corpus work is packed to
+a `.ru` container, run through the landed P1 decoder (`tools/muse_decode`),
+and its canonical stream is compared byte-for-byte against the committed
+golden vector for the same source. Beethoven-9 is marked `slow`.

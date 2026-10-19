@@ -151,12 +151,14 @@ Slow-test convention: tests too heavy for the fast tier carry
 deselects them with `-m "not slow"`, `--full` runs them.
 ```
 
-**Gate of record.** Until the GitHub Actions runner issue resolves
-(issue #194), the working gate is the pre-push hook: enable it once per
-checkout with `git config core.hooksPath scripts`, and every push to `dev`
-runs the fast tier and refuses on failure. The workflow files are valid
-YAML and resume as the server-side gate the moment account health
-resolves.
+**Gate of record.** The server-side gate is the conformance workflow
+(`.github/workflows/conformance.yml`), which runs on every push to `main`
+— for example the green run
+<https://github.com/philipdallen/rubato/actions/runs/39075467147> (push to
+`main` @ 8c7be79, 2026-10-17). The pre-push hook is a local fast-fail
+convenience, not the record: enable it once per checkout with
+`git config core.hooksPath scripts`, and it runs the fast tier and refuses
+the push on failure.
 
 ## Seed iteration loop
 

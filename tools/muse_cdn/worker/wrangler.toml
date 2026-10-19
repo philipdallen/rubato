@@ -1,0 +1,12 @@
+name = "rubato-samples-cdn"
+main = "src/index.js"
+compatibility_date = "2026-10-18"
+
+# R2 bucket holding the CC-licensed sample libraries.
+# Create it once: wrangler r2 bucket create rubato-samples
+[[r2_buckets]]
+binding = "SAMPLES"
+bucket_name = "rubato-samples"
+
+# Secret (not a var): wrangler secret put CDN_TOKEN
+# Agents send it as `Authorization: Bearer <token>` or `?token=<token>`.

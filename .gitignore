@@ -9,3 +9,6 @@ __pycache__/
 tools/muse_docs/issue_cache.json
 
 docs/audio/*.wav
+
+# Wrangler local dev state (R2/cache/D1 sqlite under .wrangler/state)
+**/.wrangler/

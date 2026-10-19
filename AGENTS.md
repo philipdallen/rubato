@@ -229,7 +229,11 @@ tools/muse_probes/    # W-B1 seed-iteration probe engine
 tools/muse_mockup/    # L1 mockup harness
 tools/muse_provider/  # L1.2 pluggable LLM generate interface (Gemini + recorded fixtures)
 tools/muse_generate/  # L1.3 generate → validate → fix loop
+tools/muse_form/      # F1 windowed compressibility/form-curve analyzer
 tools/muse_grow/      # G1 seed growth harness (iteration deltas + trajectory)
+tools/muse_lineage/   # S3.8a chain-walk/verify helper (provenance back-walk)
+tools/muse_rehearse/  # R2 rehearsal directives (natural language → seed revisions)
+tools/muse_study/     # R3 conductor-training study scripts + survival feedback
 tools/muse_chain/     # E2E chain harness (parse → pack → container → decode → verify → render)
 tools/muse_explorer/  # corpus explorer (QA static surface)
 tools/muse_workbench_runner/  # workbench data regeneration (probes/growth artifacts)
@@ -243,3 +247,11 @@ blockers/             # open_/closed_ blocker reports
 bugs/                 # open_/closed_ bug log (defects found in flight; review like blockers)
 tests/                # open_/closed_ test specs (runtime tests live beside the code)
 ```
+
+The `tools/` entries above are product tools. The repo also carries automation
+scripts at the same level — `tools/auditor.py`, `tools/hub_sweep.py`,
+`tools/boardroom_stats.py`, `tools/claim_stale_check.py`, and
+`tools/test_runner_meta.py` / `tools/test_runner_parallel.py` (with their
+`tools/auditor/` and `tools/hub_sweep/` test dirs). These are repo
+infrastructure, not product tools, and are deliberately not listed above.
+

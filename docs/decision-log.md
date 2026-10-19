@@ -29,6 +29,8 @@ gets a tracking slot. Sources: `docs/pipeline.md` locked decisions,
 | D19 | S2 packing: varint columnar + zlib (stdlib, off-the-shelf); custom entropy coder is post-v1 | locked | FORMAT_SPEC §4.6 (#138) |
 | D20 | The mockup is confidential pipeline state — never published, never exported by default; public surfaces are the `.mu` and rendered audio. DAWproject export is founder-gated. D4's open-at-launch plan stands; the private repo is the lock-down during development | locked | founder, 2026-08-24 session |
 | D21 | `muse_docs` may make network calls, but only via the explicit `refresh-issues` command; `lint --check-issues` reads a local cache and stays offline. The lint's default path and the fast test tier never touch the network. Issues absent from the cache are unknown, not stale — never flagged | locked | #315 + tools/muse_docs/README.md §Status claims |
+| D22 | S6 vocal/choral text schema: `lyric`/`syllabic`/`extend` on the note, presence-bitmap bits 5–7 + string-table intern; single verse in v0. B9 round-trips 3,587 lyrics + 405 melismas, Ode text reconstructs | locked | #318 + docs/design/s6-vocal-text.md |
+| D23 | W6 B9 compute scaling: keyed lookup at tolerance 0 (not suffix-array vs SIATEC-C vs sampling). B9 verifies at recall=precision=1.0 in ~1s | locked | #317 + docs/design/w6-b9-scaling.md |
 
 ## Open decision points (tracking)
 
@@ -36,8 +38,6 @@ gets a tracking slot. Sources: `docs/pipeline.md` locked decisions,
 |---|---|---|---|
 | O1 | E4: final extension at launch (`.mu` vs `.muse` vs `.muw`) | open | docs/design/e4-extension.md |
 | O2 | L5: sample-quality waiver (commercial library vs revised bar) | conditional | docs/design/l5-sample-waiver.md |
-| O3 | S6: vocal/choral text schema | open | docs/design/s6-vocal-text.md |
-| O4 | W6: B9 compute scaling (suffix-array vs SIATEC-C vs sampling) | open | docs/design/w6-b9-scaling.md |
 
 ## How to add a decision
 

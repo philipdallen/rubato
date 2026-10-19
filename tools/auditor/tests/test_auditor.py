@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -270,10 +271,23 @@ def test_source_never_adds_claimable_label():
         assert f'"{label}"' not in src.replace('CLAIMABLE_LABELS = {"status:available", "status:claimed"}', ""), label
 
 
-def test_source_never_closes_or_merges():
+def test_close_is_scoped_to_digest_retention():
+    """The only sanctioned close path is digest retention.
+
+    The "never closes" rule has one deliberate, documented exception: stale,
+    date-unique digest issues under exactly ["on-hold"]. This test pins the
+    scope -- a single close site, inside close_issue(), selected by
+    select_stale_digests(). Proposals must never be closeable.
+    """
     src = AUD.read_text()
-    for bad in ('"state": "closed"', "merge_pull_request", "pulls/", "DELETE"):
+    for bad in ("merge_pull_request", "pulls/", "DELETE"):
         assert bad not in src, bad
+    def_idx = src.find("def close_issue(")
+    assert def_idx != -1, "close_issue missing"
+    closes = [m.start() for m in re.finditer(r'"state":\s*"closed"', src)]
+    assert len(closes) == 1, f"expected one close site, found {len(closes)}"
+    assert closes[0] > def_idx, "state=closed outside close_issue()"
+    assert "select_stale_digests" in src
 
 
 def test_source_never_edits_repo_files_except_state_and_log():

@@ -2,6 +2,11 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+> **Start here.** New to the repo? Read this file, then
+> [FORMAT_SPEC.md](FORMAT_SPEC.md) (the format), then
+> [docs/decision-log.md](docs/decision-log.md) (why it is this way).
+> [docs/README.md](docs/README.md) indexes every doc by phase.
+
 **An executable music format.** A `.ru` file packages a musical work as three
 components: the **score** (the fixed work — our compressed MusicXML), the
 **prompt** (the interpretive space), and the **manifest** (plaintext rights).
@@ -61,17 +66,27 @@ Phases 0–4 of the build plan ([docs/pipeline.md](docs/pipeline.md)) are
 complete; Phase 5 (the unveiling) is partly landed and the public publication
 step is deliberately deferred.
 
-| Component | Status | Visibility |
-|---|---|---|
-| Format spec ([FORMAT_SPEC.md](FORMAT_SPEC.md)) | v0 design draft; the encoding and language sections are pinned by Phase 0/1 evidence | Public at launch |
-| Reference corpus ([corpus/](corpus/)) | **Acquired** — Bach, Byrd, Schubert, Beethoven 5, Beethoven 9 complete | Public domain sources |
-| Workbench + analyzer (W-series) | **Landed** — event IR, corpus loader, analyzer, diff tool, visualizer, B9 scaling fix | Internal |
-| Compressor (MusicXML → `.ru`) | **Landed** — score S2 [tools/muse_roll](tools/muse_roll/), language S4 [tools/muse_ops](tools/muse_ops/), container S5 [tools/muse_mu](tools/muse_mu/), seed S3 series [tools/muse_seed](tools/muse_seed/) | Proprietary |
-| Deterministic player | **Landed** — decoder P1 [tools/muse_decode](tools/muse_decode/), renderer P2 [tools/muse_play](tools/muse_play/), conformance suite P3 [tools/muse_ci](tools/muse_ci/) | Public at launch |
-| E2E chain gate | **Landed** — source → IR → pack → container → decode → render, determinism-checked; B9 verifies at recall=precision=1.0 ([tools/muse_chain](tools/muse_chain/)) | Internal |
-| Seed authoring (C-series) | **Landed** — format impl, AI-assisted authoring, budget calibration, assertion authoring | Proprietary |
-| LLM player (L-series) | **Landed** — mockup harness L1 [tools/muse_mockup](tools/muse_mockup/), renderer L2 [tools/muse_render](tools/muse_render/), A/B rig L3 [tools/muse_compare](tools/muse_compare/), distiller L4 [tools/muse_distill](tools/muse_distill/) | **The product — proprietary** |
-| Event (E-series) | E1 work + E2 venue **done**; E3 recording plan drafted, **publication blocked** on a concert-worthy Phase-4 result | At launch |
+**Launch-ready** means: the format spec is frozen at v1.0 (Phase 1 done),
+every corpus work round-trips through the deterministic player losslessly
+(Phase 2 done), and one corpus work performed by the LLM player has passed
+the founder's by-ear evaluation as a musical performance (Phase 4 done).
+Until all three hold, nothing is announced.
+
+The **TRL** column is the component's readiness level from
+[status/trl.json](status/trl.json) (1 = idea, 9 = proven in the field); the
+`_rationale` block there gives the done-when behind each number.
+
+| Component | TRL | Status | Visibility |
+|---|---|---|---|
+| Format spec ([FORMAT_SPEC.md](FORMAT_SPEC.md)) | 2 | v0 design draft; the encoding and language sections are pinned by Phase 0/1 evidence | Public at launch |
+| Reference corpus ([corpus/](corpus/)) | 6 | **Acquired** — Bach, Byrd, Schubert, Beethoven 5, Beethoven 9 complete | Public domain sources |
+| Workbench + analyzer (W-series) | 5 | **Landed** — event IR, corpus loader, analyzer, diff tool, visualizer, B9 scaling fix | Internal |
+| Compressor (MusicXML → `.ru`) | 5 | **Landed** — score S2 [tools/muse_roll](tools/muse_roll/), language S4 [tools/muse_ops](tools/muse_ops/), container S5 [tools/muse_mu](tools/muse_mu/), seed S3 series [tools/muse_seed](tools/muse_seed/) | Proprietary |
+| Deterministic player | 6 | **Landed** — decoder P1 [tools/muse_decode](tools/muse_decode/), renderer P2 [tools/muse_play](tools/muse_play/), conformance suite P3 [tools/muse_ci](tools/muse_ci/) | Public at launch |
+| E2E chain gate | 5 | **Landed** — source → IR → pack → container → decode → render, determinism-checked; B9 verifies at recall=precision=1.0 ([tools/muse_chain](tools/muse_chain/)) | Internal |
+| Seed authoring (C-series) | 5 | **Landed** — format impl, AI-assisted authoring, budget calibration, assertion authoring | Proprietary |
+| LLM player (L-series) | 3 | **Landed** — mockup harness L1 [tools/muse_mockup](tools/muse_mockup/), renderer L2 [tools/muse_render](tools/muse_render/), A/B rig L3 [tools/muse_compare](tools/muse_compare/), distiller L4 [tools/muse_distill](tools/muse_distill/) | **The product — proprietary** |
+| Event (E-series) | 3 | E1 work + E2 venue **done**; E3 recording plan drafted, **publication blocked** on a concert-worthy Phase-4 result | At launch |
 
 ## The corpus
 

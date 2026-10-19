@@ -67,3 +67,6 @@ If the live smoke proves the retry loops (double re-run on one failure), the
 follow-up is to narrow the `if` (e.g. also require the run's failed jobs
 had zero duration as signals for runner-provisioning failures before
 re-running; that refinement awaits a green runner to observe it against.
+---
+
+**Closed 2026-10-19** (issue #418 reconciliation, run=20261019-0741-2g2w): the owning task **#293** is closed as completed; the static docs-contract coverage it calls for landed in `tests/docs/test_ci_retry.py` (present). The live-trigger check stays opportunistic, as recorded above. No open `Tests:` issue remains.

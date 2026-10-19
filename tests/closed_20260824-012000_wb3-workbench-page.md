@@ -37,3 +37,7 @@ python3 tools/muse_probes/cli.py seeds/bwv227.1.seed.yaml --work corpus/bach/bwv
   per-era budget data — pinned as current behavior in
   test_workbench_dod.py::test_era_filter_verdicts_are_artifact_driven_today;
   flip it when the recompute lands.
+
+---
+
+**Closed 2026-10-19** (issue #418 reconciliation, run=20261019-0741-2g2w): the owning task **#187** is closed as completed; its page/route coverage landed in `tools/qa_frontend/tests/test_workbench_dod.py` and `test_workbench_routes.py` (per addendum above). No open `Tests:` issue remains.

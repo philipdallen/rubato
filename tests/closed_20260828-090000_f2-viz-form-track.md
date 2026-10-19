@@ -11,3 +11,7 @@ tick axis as the notes.
 ## Coverage still needed (follow-up)
 
 The follow-up #298 (assertion part anymore) already contains it.
+
+---
+
+**Closed 2026-10-19** (issue #418 reconciliation, run=20261019-0741-2g2w): the owning task **#297** (F2 form track) is closed as completed; the remaining viz coverage it defers to **#298** also closed as completed, landed in `tools/muse_viz/test_muse_viz.py`. No open `Tests:` issue remains.

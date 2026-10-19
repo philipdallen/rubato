@@ -1,6 +1,6 @@
 """Tests: muse_audio render bridge (issue #243).
 
-Spec: tests/open_20260824-233000_workbench-audio.md.
+Spec: tests/closed_20260824-233000_workbench-audio.md.
 """
 
 import json

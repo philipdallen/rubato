@@ -57,3 +57,7 @@ stale route corrected in `docs/design/workbench-terminal-mode.md`.
   chrome (per the existing B1 scaffold contract, which pins nav on the
   boardroom landing only); the deck's cross-links were still corrected to
   the real terminal route.
+
+---
+
+**Closed 2026-10-19** (issue #418 reconciliation, run=20261019-0741-2g2w): the owning task **#304** is closed as completed; the seven-point coverage it calls for landed in `tools/qa_frontend/tests/test_workbench_nav.py` (present, slow tier). No open `Tests:` issue remains.

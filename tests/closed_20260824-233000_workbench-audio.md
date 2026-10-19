@@ -36,3 +36,7 @@ tools/muse_audio + tools/muse_render, run=20260824-1032-xjzf).
 ## Invocation
 
 `cd tools && python -m pytest muse_audio muse_render -q`
+
+---
+
+**Closed 2026-10-19** (issue #418 reconciliation, run=20261019-0741-2g2w): the owning task **#243** is closed as completed; the 13-test coverage it describes landed in `tools/muse_audio/tests/test_audio.py` and `tools/muse_render/tests/test_render.py` (both present). No open `Tests:` issue remains.

@@ -57,4 +57,4 @@ per `tools/requirements.test.txt`.
 cd tools && python -m pytest muse_audio -q
 ```
 
-Test spec: [tests/open_20260824-233000_workbench-audio.md](../../tests/open_20260824-233000_workbench-audio.md).
+Test spec: [tests/closed_20260824-233000_workbench-audio.md](../../tests/closed_20260824-233000_workbench-audio.md).

@@ -8,6 +8,9 @@
  *   HEAD /libs/<lib>/<path>   headers only
  *
  * Auth: `Authorization: Bearer <CDN_TOKEN>` header or `?token=` query param.
+ * Presented tokens are compared in constant time (SHA-256 both sides, then a
+ * fixed-length byte compare) so comparison timing cannot leak the secret one
+ * byte at a time.
  * If the CDN_TOKEN secret is not set, the worker refuses everything (fail
  * closed) rather than serving samples to the open internet.
  *
@@ -29,6 +32,26 @@ function bearerToken(request) {
   if (h && /^bearer /i.test(h)) return h.slice(7).trim();
   const u = new URL(request.url);
   return u.searchParams.get("token");
+}
+
+/**
+ * Constant-time token comparison. Hashing both sides to a fixed 32-byte
+ * digest removes the length difference, so the byte loop below always runs
+ * the same number of iterations and no early exit leaks the prefix length.
+ * A missing presented token is hashed as the empty string, which still
+ * yields a well-defined (mismatching) digest.
+ */
+async function tokenMatches(presented, expected) {
+  const enc = new TextEncoder();
+  const [a, b] = await Promise.all([
+    crypto.subtle.digest("SHA-256", enc.encode(presented ?? "")),
+    crypto.subtle.digest("SHA-256", enc.encode(expected)),
+  ]);
+  const x = new Uint8Array(a);
+  const y = new Uint8Array(b);
+  let diff = 0;
+  for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
+  return diff === 0;
 }
 
 /**
@@ -63,7 +86,7 @@ export default {
     if (!env.CDN_TOKEN) {
       return json({ error: "cdn token not configured" }, 503);
     }
-    if (bearerToken(request) !== env.CDN_TOKEN) {
+    if (!(await tokenMatches(bearerToken(request), env.CDN_TOKEN))) {
       return json({ error: "unauthorized" }, 401);
     }
 

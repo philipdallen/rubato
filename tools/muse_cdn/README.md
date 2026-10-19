@@ -71,7 +71,9 @@ See `RUNBOOK.md` for the from-scratch sequence (enable R2, create the bucket,
 upload objects, deploy the worker, enable the workers.dev route, set the secret,
 upload the manifest). Operational gotchas — R2 must be enabled in the dashboard
 first, the workers.dev route needs its own enable call, 300 MB per object — are
-recorded there.
+recorded there. `RUNBOOK.md` §Authenticating to the Cloudflare API covers the
+API-token auth pattern (including why every call is direct REST rather than
+`wrangler`); no credential-bearing helper is carried in this repo.
 
 ## Cost
 

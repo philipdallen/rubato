@@ -30,6 +30,46 @@ libraries to agents. Total bill: $0 (R2 free tier: 10 GB storage, 1M Class A /
    API. The worker never exposes it; it is write-only. If it is lost, rotate it
    (step 6) and distribute the new value to agents.
 
+## Authenticating to the Cloudflare API
+
+All Cloudflare work — R2 uploads, worker deploys, secret rotation — goes over
+direct REST calls to `https://api.cloudflare.com/client/v4/...`, authenticated
+with the Cloudflare API token as a Bearer header. The registered connection is:
+
+```
+{"provider":"cloudflare","auth_scheme":"api_key",
+ "placement":"bearer_header","api_hosts":["api.cloudflare.com"]}
+```
+
+**The token is never passed literally.** In the Muse environment it arrives as a
+*placeholder value* that only the connector helper can swap onto an outgoing
+request: a request carrying the raw value is rejected with Cloudflare error code
+**6111**, and `wrangler` cannot use it at all — which is why every step below
+uses the REST API rather than the Wrangler CLI. The swap is performed by
+`add_surrogate_to_request` in the Muse environment's
+`/opt/muse/skills/custom-connector-setup/bin/dynamic_credentials.py`.
+`scripts/r2_upload.py` refuses to send a literal placeholder value, so a
+mis-wired call fails loudly instead of leaking the value into a log.
+
+### Decision: no connector helper is carried in this repo
+
+The source package shipped a `connector/` helper (`connector/CONNECTOR.md`,
+`connector/bin/cf_api.py`). It was **not** carried over when the package landed
+as `tools/muse_cdn`, and this runbook records that as a deliberate decision
+rather than an omission:
+
+- A credential-bearing helper does not belong in a public repo.
+- The only working implementation imports a path that exists solely inside the
+  Muse environment, so a token-free stub committed here would be dead code that
+  cannot run in CI or in any sandbox.
+- The capability is therefore **documented** (this section) rather than shipped.
+
+Consequently: run `scripts/r2_upload.py` from the Muse environment (where the
+connector helper resolves the placeholder), or set `CLOUDFLARE_API_TOKEN` and
+pass `--token "$CLOUDFLARE_API_TOKEN"` anywhere else. Deploys, secret rotation
+and every other Cloudflare call use the REST sequences below with `$TOKEN`
+supplied the same way.
+
 ## Deploy from scratch (or redeploy the worker)
 
 All commands use the Cloudflare API directly. Replace `$TOKEN` with the API

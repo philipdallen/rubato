@@ -24,11 +24,14 @@ python3 tools/muse_rehearse/cli.py commit <seed.yaml> <slug> "<directive>"
   cannot show (which knobs turned vs did it help). Also writes nothing;
   the payload is sized to fit the runner's stdout window.
 - `render-dry-run` compiles the candidate and renders what it sounds
-  like through the deterministic stand-in (`muse_audio.render_seed`),
-  writing only the content-addressed WAV under
+  like, writing only the content-addressed WAV under
   `docs/workbench/data/renders/` (gitignored, reproducible on demand).
-  Sub-second for a chorale: directive → candidate → WAV is one command,
-  so the coaching loop can be heard, not just scored.
+  `--tier sine` (default) is the sub-second stand-in ear;
+  `--tier samples` renders through the VSCO 2 CE pools (the CDN's
+  highest-quality library; needs `--sample-root` or `RUBATO_SAMPLE_ROOT`,
+  ~2.3 s for a chorale). The filename is tier-qualified, so sine and
+  samples renders never collide. The payload reports the tier and
+  library used.
 - `commit` writes the directive file
   (`seeds/<work>.directives/<slug>.directive.txt`) and the compiled
   revision, stamping `extends: sha256(directive bytes)` +

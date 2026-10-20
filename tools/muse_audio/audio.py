@@ -203,17 +203,38 @@ def _render_mockup_to_wav(work, mockup, out_path):
     return meta, digest
 
 
-def render_seed(work, seed, out_path):
+def render_seed(work, seed, out_path, tier="sine", sample_root=None):
     """Render an in-memory (possibly uncommitted) seed to a WAV file.
 
     The coaching loop's ear: a directive compiles to a candidate seed,
     this renders what the candidate sounds like. Deterministic per
     (work, seed) — same candidate always yields the same bytes.
-    Returns (duration_sec, notes, sha256).
+
+    ``tier="sine"`` is the instant stand-in (envelope at pitch
+    frequency, sub-second). ``tier="samples"`` renders through the
+    sample pools (VSCO 2 CE from the Rubato CDN) — higher quality,
+    slower; needs ``sample_root`` (or the ``RUBATO_SAMPLE_ROOT`` env).
     """
+    if tier == "samples":
+        from muse_sample import load_pools, render_mockup_samples
+        root = sample_root or os.environ.get("RUBATO_SAMPLE_ROOT")
+        if not root or not os.path.isdir(root):
+            raise SampleRootMissing(
+                "tier=samples needs a sample root: pass sample_root or set "
+                "RUBATO_SAMPLE_ROOT")
+        mockup = _stand_in_mockup(work, seed)
+        mockup.ppq = work.meta.ppq
+        meta = render_mockup_samples(mockup, load_pools(root), out_path)
+        with open(out_path, "rb") as fh:
+            digest = hashlib.sha256(fh.read()).hexdigest()
+        return meta["duration_sec"], meta["notes"], digest, meta["library"]
     mockup = _stand_in_mockup(work, seed)
     meta, digest = _render_mockup_to_wav(work, mockup, out_path)
-    return meta["duration_sec"], meta["notes"], digest
+    return meta["duration_sec"], meta["notes"], digest, "sine stand-in"
+
+
+class SampleRootMissing(FileNotFoundError):
+    """tier=samples was requested without a sample root."""
 
 
 def render_revision(work_path, seed_path, label, out_dir=AUDIO_DIR,

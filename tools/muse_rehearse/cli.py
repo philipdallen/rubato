@@ -67,6 +67,12 @@ def main(argv=None):
     rd.add_argument("seed")
     rd.add_argument("directive")
     rd.add_argument("--era", default="baroque")
+    rd.add_argument("--tier", default="sine", choices=["sine", "samples"],
+                    help="sine: instant stand-in; samples: VSCO 2 CE pools "
+                         "from the Rubato CDN (needs --sample-root or "
+                         "RUBATO_SAMPLE_ROOT)")
+    rd.add_argument("--sample-root", default=None,
+                    help="local root of the VSCO 2 CE library")
     rd.add_argument("--out-dir", default=None,
                     help="render directory (default: "
                          "docs/workbench/data/renders)")
@@ -137,20 +143,28 @@ def main(argv=None):
         # there is no cache to keep honest — same candidate always yields
         # the same filename and the same bytes.
         import hashlib
-        from muse_audio.audio import render_seed
+        from muse_audio.audio import render_seed, SampleRootMissing
         from muse_seed import dump_seed
         candidate, diff = dry_run(directive, seed, args.era, work)
         tag = hashlib.sha256(
-            dump_seed(candidate, fmt="json").encode()).hexdigest()[:16]
+            (args.tier + dump_seed(candidate, fmt="json")).encode()
+        ).hexdigest()[:16]
         out_dir = _resolve(args.out_dir) if args.out_dir else os.path.join(
             REPO, "docs", "workbench", "data", "renders")
         os.makedirs(out_dir, exist_ok=True)
         wav_name = f"candidate-{tag}.wav"
-        duration_sec, notes, digest = render_seed(
-            work, candidate, os.path.join(out_dir, wav_name))
+        try:
+            duration_sec, notes, digest, library = render_seed(
+                work, candidate, os.path.join(out_dir, wav_name),
+                tier=args.tier, sample_root=args.sample_root)
+        except SampleRootMissing as e:
+            print(f"render error: {e}", file=sys.stderr)
+            return 1
         print(json.dumps({
             "directive": args.directive,
             "changed": sorted(diff.get("changes", {}).keys()),
+            "tier": args.tier,
+            "library": library,
             "wav": f"data/renders/{wav_name}",
             "duration_sec": duration_sec,
             "notes": notes,

@@ -93,6 +93,10 @@
       <button id="dry-run-btn">Dry run</button>
       <button id="score-btn" class="primary">Score</button>
       <button id="listen-btn" class="primary">Listen</button>
+      <select id="listen-tier" aria-label="render tier">
+        <option value="sine">sine (fast)</option>
+        <option value="samples" selected>samples (quality)</option>
+      </select>
       <button id="commit-btn">Commit</button>
       <button id="discard-btn">Discard</button>
     </div>
@@ -332,8 +336,13 @@ async function init() {
     if (!text) { setStatus('enter a directive first.'); return; }
     if (!currentSeedPath()) { setStatus('pick a work first.'); return; }
     setStatus('rendering…');
-    const j = await post('muse_rehearse.render-dry-run', [currentSeedPath(), text, '--era', currentEra()]);
-    if (!j.ok) { setStatus(`error: ${j.error || (j.stderr || '').trim() || 'render failed'}`); return; }
+    const tier = document.getElementById('listen-tier').value;
+    const j = await post('muse_rehearse.render-dry-run', [currentSeedPath(), text, '--era', currentEra(), '--tier', tier]);
+    if (!j.ok) {
+      const msg = (j.stderr || '').trim() || 'render failed';
+      setStatus(`error: ${msg}. The samples tier needs RUBATO_SAMPLE_ROOT on the runner.`);
+      return;
+    }
     let r = null;
     try { r = JSON.parse(j.stdout); } catch (e) { r = null; }
     if (!r || !r.wav) { setStatus('render returned no audio.'); return; }
@@ -341,8 +350,8 @@ async function init() {
     audio.style.display = '';
     audio.src = r.wav;
     audio.play().catch(() => {});
-    setStatus(`rendered — ${r.duration_sec}s · ${r.notes} notes. Playing the candidate.`);
-    logAttempt(text, 'listen', `${r.duration_sec}s · ${r.notes} notes`);
+    setStatus(`rendered (${r.tier}${r.library ? ' · ' + r.library : ''}) — ${r.duration_sec}s · ${r.notes} notes. Playing the candidate.`);
+    logAttempt(text, 'listen', `${r.tier} · ${r.duration_sec}s · ${r.notes} notes`);
   };
 
   document.getElementById('commit-btn').onclick = async () => {

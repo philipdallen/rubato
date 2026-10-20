@@ -47,9 +47,13 @@ D20: WAVs only cross the boundary. Mockups never leave the pipeline.
 
 - `render_revision(work_path, seed_path, label, out_dir=..., live=False,
   provider=None) -> RenderResult`
-- `render_seed(work, seed, out_path) -> (duration_sec, notes, sha256)` —
+- `render_seed(work, seed, out_path, tier="sine", sample_root=None)` —
   the in-memory path for uncommitted candidates (the coaching loop's
-  ear: `muse_rehearse render-dry-run` calls it)
+  ear: `muse_rehearse render-dry-run` calls it). `tier="sine"` is the
+  instant envelope-at-pitch stand-in; `tier="samples"` renders through
+  the muse_sample VSCO 2 CE pools (needs the sample root, via argument
+  or `RUBATO_SAMPLE_ROOT`). Returns `(duration_sec, notes, sha256,
+  library)`.
 - `write_manifest(results, out_dir=...) -> path`
 - `AUDIO_DIR` (docs/audio), `RenderResult` dataclass
 

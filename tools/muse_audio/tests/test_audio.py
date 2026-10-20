@@ -167,7 +167,7 @@ class TestCoachingAudibility:
     def _sha(self, tmp_path, seed, label):
         from muse_audio.audio import render_seed
         work, _ = self._work_seed()
-        _, _, digest = render_seed(
+        _, _, digest, _ = render_seed(
             work, seed, str(tmp_path / f"{label}.wav"))
         return digest
 

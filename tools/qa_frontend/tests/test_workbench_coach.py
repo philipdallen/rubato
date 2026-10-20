@@ -68,6 +68,9 @@ def test_coach_has_audio_player():
     src = _html()
     assert 'id="coach-audio"' in src, "coach page must carry an audio player"
     assert "<audio" in src, "listen needs an <audio> element"
+    assert 'id="listen-tier"' in src, "listen needs a render-tier selector"
+    assert "samples" in src and "sine" in src, "tier selector must offer both ears"
+    assert "--tier" in src, "listen must send the tier to the runner"
 
 
 def test_coach_embeds_no_mockup_json():

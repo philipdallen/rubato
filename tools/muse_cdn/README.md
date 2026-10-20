@@ -24,7 +24,8 @@ fleet is not. See `docs/design/l5-sample-waiver.md` for the commercial-tier path
 ## Layout
 
 ```
-worker/src/index.js        the worker: auth, manifest, range-aware file serving
+worker/src/index.js        the worker: auth, manifest, range-aware file serving,
+                           + the corpus browser console at /
 worker/wrangler.toml       worker + R2 bucket binding
 worker/manifest.example.json  shape of the manifest the worker serves
 scripts/upload.sh          push a library to R2 (rclone) and refresh manifest.json
@@ -32,6 +33,15 @@ scripts/r2_upload.py       REST-API uploader (resumable, 300 MB/object cap)
 scripts/fetch.sh           agent-side: sync a library with sha256 verification
 tests/worker_test.mjs      live worker harness (17 checks)
 ```
+
+## Browser console
+
+`GET /` (same token gate as everything else) serves a small HTML console for
+humans: library tabs, a directory tree built from `manifest.json`, file sizes,
+in-browser audio preview for samples (streams through the token-gated file
+routes, so scrubbing works), text preview for `.sfz`/docs, and download links.
+Paste the `CDN_TOKEN` once per tab; agents keep using `/manifest.json` and the
+`/libs/<lib>/<path>` routes, which are unchanged.
 
 ## Agent usage
 
@@ -69,12 +79,13 @@ node tests/worker_hermetic_test.mjs
 node tests/worker_test.mjs "$RUBATO_CDN_URL" "$RUBATO_CDN_TOKEN"
 ```
 
-`worker_hermetic_test.mjs` (14 checks) starts `wrangler dev` against a
+`worker_hermetic_test.mjs` (18 checks) starts `wrangler dev` against a
 throwaway `--persist-to` directory, seeds `manifest.json` + one library file
 into the local R2 binding, and passes the token as a literal `--var` — so it
 needs no `CDN_TOKEN` and never touches the network. It covers auth gating,
 manifest shape, file fetch + sha256, `Range`/206, plain GET/200, HEAD, the
-percent-encoded-path regression, and the manifest POST/405 gate. It needs the
+percent-encoded-path regression, the manifest POST/405 gate, and the console
+route (`/` 401 without token, 200 HTML with token, 405 on POST). It needs the
 `wrangler` CLI on `PATH` (or `WRANGLER_BIN`); the pytest wrapper skips if the
 CLI is absent, so a sandbox without a node toolchain does not fail the gate.
 

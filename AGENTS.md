@@ -189,6 +189,28 @@ with a manual one-shot re-run for flaky failures (.github/workflows/retry-flaky.
 #293->#300: workflow_dispatch-only with run_id input; docs: docs/ci-retry.md.
 Update this section as tooling lands — do not leave it stale.
 
+## Sample CDN (tools/muse_cdn)
+
+The CC-licensed sample libraries (VSCO 2 CE, Sonatina SSO) are served to
+agents from Cloudflare R2 by the `rubato-samples-cdn` worker
+(<https://rubato-samples-cdn.rubato.workers.dev>). `GET /` serves a small
+browser console for humans (library tree, audio preview); agents use
+`/manifest.json` and `/libs/<lib>/<path>`. Everything is token-gated
+(`CDN_TOKEN`); the worker fails closed without it.
+
+**The live worker deploys itself.** `.github/workflows/deploy-muse-cdn.yml`
+runs on every push to `main` touching `tools/muse_cdn/worker/**`, weekly on a
+schedule as a drift corrector, and on demand via `workflow_dispatch`. It needs
+the repository secret `CLOUDFLARE_API_TOKEN` (Account -> Workers R2 Storage:
+Edit, Workers Scripts: Edit). The deploy is direct Cloudflare REST and
+re-declares the R2 binding every time — a script upload whose metadata omits
+bindings *removes* them (this took the live worker down once, 2026-10-19).
+Never deploy the worker by hand when the workflow can do it; if you must,
+mirror the workflow steps exactly.
+
+License boundary: CC0 / CC-licensed content only. Never upload Spitfire
+libraries — their EULA forbids redistribution. See `tools/muse_cdn/README.md`.
+
 ## Repository layout
 
 ```

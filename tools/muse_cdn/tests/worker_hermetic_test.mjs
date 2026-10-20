@@ -198,6 +198,25 @@ try {
     check("POST /manifest.json -> 405", r.status === 405);
     await r.arrayBuffer().catch(() => {});
   }
+
+  // 12-14: corpus browser console at /
+  {
+    const r = await fetch(root + "/");
+    check("no-token / -> 401", r.status === 401);
+    await r.arrayBuffer().catch(() => {});
+  }
+  {
+    const r = await fetch(root + "/", { headers: auth });
+    const body = await r.text();
+    check("GET / -> 200 text/html", r.status === 200 &&
+      (r.headers.get("content-type") || "").includes("text/html"));
+    check("console page carries the corpus title", body.includes("rubato sample corpus"));
+  }
+  {
+    const r = await fetch(root + "/", { method: "POST", headers: auth });
+    check("POST / -> 405", r.status === 405);
+    await r.arrayBuffer().catch(() => {});
+  }
 } catch (e) {
   console.error("hermetic suite error:", e.message);
   fail++;

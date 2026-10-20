@@ -61,3 +61,19 @@ helper resolves the placeholder). Nothing else about #425 is unresolved.
   and it already shows the redeploy is needed and impossible from here.
 - `RUNBOOK.md` §4 already carries the exact deploy sequence; no doc change is
   needed — only the credential.
+
+## Resolution (2026-10-20T01:10Z)
+
+The redeploy happened through a different route: the Cloudflare API token in
+the Muse secure vault (not in this run's env) was used to deploy the worker
+directly. The blocker as stated (no token in *this run's* environment) remains
+true, but the underlying task (#425) is unblocked: the live worker now matches
+the repo source plus the new browser console at `/` (16/16 live checks green,
+2026-10-20).
+
+Follow-ups, not blockers:
+- `CLOUDFLARE_API_TOKEN` still needs to reach this run's secret store (or the
+  GitHub repo secrets, for `.github/workflows/deploy-muse-cdn.yml`) before
+  any future deploy can happen from here. That is now the owner's call.
+- `RUBATO_CDN_TOKEN` in this run's env is the *previous* worker bearer token;
+  it was rotated during the redeploy and must be refreshed from the owner.

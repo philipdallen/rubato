@@ -1,0 +1,89 @@
+# Deploys the muse_cdn worker to Cloudflare on every change, so the live
+# build always matches main (issue #425). A weekly schedule re-deploys as a
+# drift corrector; workflow_dispatch allows a manual re-run.
+#
+# Required repository secret: CLOUDFLARE_API_TOKEN — an API token with
+# Account -> Workers R2 Storage: Edit and Workers Scripts: Edit.
+# (The worker's own bearer token, CDN_TOKEN, is managed separately and is
+# NOT needed for deploy; the deploy never reads or changes it.)
+#
+# The deploy is direct Cloudflare REST (multipart script upload), not
+# wrangler, and it re-declares the R2 binding every time: a script upload
+# whose metadata omits bindings *removes* them, which once took the live
+# worker down to 500s on every request (2026-10-19).
+
+name: deploy-muse-cdn
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tools/muse_cdn/worker/**"
+      - ".github/workflows/deploy-muse-cdn.yml"
+  schedule:
+    - cron: "23 4 * * 1" # weekly drift check, Mondays 04:23 UTC
+  workflow_dispatch:
+
+env:
+  CF_ACCOUNT_ID: ff2867fbdc8024306badfd79f5f079f3
+  CF_SCRIPT: rubato-samples-cdn
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy worker script (multipart upload, R2 binding declared)
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CF_TOKEN:-}" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN secret is not set; cannot deploy."
+            exit 1
+          fi
+          META=$(python3 -c "
+          import json
+          print(json.dumps({
+            'main_module': 'index.js',
+            'compatibility_date': '2024-09-01',
+            'bindings': [
+              {'type': 'r2_bucket', 'name': 'SAMPLES', 'bucket_name': 'rubato-samples'}
+            ],
+          }))")
+          curl -sS -X PUT \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${CF_SCRIPT}" \
+            -H "Authorization: Bearer ${CF_TOKEN}" \
+            -F "metadata=${META};type=application/json" \
+            -F "index.js=@tools/muse_cdn/worker/src/index.js;type=application/javascript+module" \
+            -o /tmp/deploy.json -w 'deploy HTTP %{http_code}\n'
+          python3 -c "
+          import json
+          d = json.load(open('/tmp/deploy.json'))
+          assert d.get('success'), d.get('errors')
+          print('deploy ok')"
+
+      - name: Ensure workers.dev route is enabled
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          curl -sS -X POST \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${CF_SCRIPT}/subdomain" \
+            -H "Authorization: Bearer ${CF_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"enabled":true}' -o /tmp/subdomain.json
+          python3 -c "
+          import json
+          d = json.load(open('/tmp/subdomain.json'))
+          assert d.get('success'), d.get('errors')
+          print('workers.dev route ok')"
+
+      - name: Smoke test (unauthenticated -> 401, worker live and gating)
+        run: |
+          set -euo pipefail
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 \
+            "https://rubato-samples-cdn.rubato.workers.dev/manifest.json")
+          echo "no-token manifest -> HTTP ${CODE}"
+          [ "${CODE}" = "401" ]

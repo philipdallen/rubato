@@ -107,12 +107,15 @@ curl -s -X PUT "https://api.cloudflare.com/client/v4/accounts/$ACCT/workers/subd
 A 409 means the name is taken; pick another and update URLs everywhere.
 
 ### 4. Deploy the worker
-Multipart upload of `worker/src/index.js`:
+Multipart upload of `worker/src/index.js`. The metadata MUST re-declare the
+R2 binding: a script upload whose metadata omits bindings **removes** them,
+which takes the live worker down to 500s on every request (2026-10-19).
 ```
 cd worker
+META='{"main_module":"index.js","compatibility_date":"2026-10-18","bindings":[{"type":"r2_bucket","name":"SAMPLES","bucket_name":"rubato-samples"}]}'
 curl -s -X PUT "https://api.cloudflare.com/client/v4/accounts/$ACCT/workers/scripts/rubato-samples-cdn" \
   -H "Authorization: Bearer $TOKEN" \
-  -F "metadata={\"main_module\":\"index.js\",\"compatibility_date\":\"2026-10-18\"};type=application/json" \
+  -F "metadata=${META};type=application/json" \
   -F "index.js=@src/index.js;type=application/javascript+module"
 ```
 

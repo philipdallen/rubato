@@ -12,3 +12,6 @@ docs/audio/*.wav
 
 # Wrangler local dev state (R2/cache/D1 sqlite under .wrangler/state)
 **/.wrangler/
+
+# Coaching scratch renders (content-addressed, reproducible on demand)
+docs/workbench/data/renders/

@@ -38,7 +38,7 @@ def _html():
 def test_coach_has_directive_affordances():
     src = _html()
     assert "<textarea" in src, "coach page must accept a directive"
-    for label in ("Dry run", "Score", "Commit", "Discard"):
+    for label in ("Dry run", "Score", "Listen", "Commit", "Discard"):
         assert label in src, f"missing [{label}] affordance"
 
 
@@ -59,8 +59,15 @@ def test_coach_wires_score_command():
     src = _html()
     assert "muse_rehearse.score-dry-run" in src, "score not wired to the runner"
     assert "muse_rehearse.dry-run" in src, "dry-run not wired to the runner"
+    assert "muse_rehearse.render-dry-run" in src, "listen not wired to the runner"
     assert "muse_rehearse.commit" in src, "commit not wired to the runner"
     assert "api/run" in src, "page must POST against the runner"
+
+
+def test_coach_has_audio_player():
+    src = _html()
+    assert 'id="coach-audio"' in src, "coach page must carry an audio player"
+    assert "<audio" in src, "listen needs an <audio> element"
 
 
 def test_coach_embeds_no_mockup_json():

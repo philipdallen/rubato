@@ -57,3 +57,34 @@ def test_score_dry_run_writes_nothing(capsys):
 def test_score_dry_run_grammar_error_is_exit_1(capsys):
     rc = cli.main(["score-dry-run", SEED, "wobble: sideways"])
     assert rc == 1
+
+
+
+def test_render_dry_run_writes_content_addressed_wav(tmp_path, capsys):
+    import wave
+    rc = cli.main(["render-dry-run", SEED,
+                   "rebalance: bring P4 up at bar 5",
+                   "--out-dir", str(tmp_path)])
+    assert rc == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["changed"] == ["params"]
+    wav_path = tmp_path / os.path.basename(out["wav"])
+    assert wav_path.is_file()
+    with wave.open(str(wav_path)) as wf:
+        assert wf.getframerate() == 44100
+        assert wf.getnframes() > 0
+    assert out["duration_sec"] > 30.0
+    assert out["notes"] == 279
+
+
+def test_render_dry_run_is_deterministic(tmp_path, capsys):
+    rc = cli.main(["render-dry-run", SEED, "rubato: more",
+                   "--out-dir", str(tmp_path)])
+    assert rc == 0
+    a = json.loads(capsys.readouterr().out)
+    rc = cli.main(["render-dry-run", SEED, "rubato: more",
+                   "--out-dir", str(tmp_path)])
+    assert rc == 0
+    b = json.loads(capsys.readouterr().out)
+    assert a["wav"] == b["wav"]
+    assert a["sha256"] == b["sha256"]

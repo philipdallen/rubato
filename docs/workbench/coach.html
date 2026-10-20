@@ -92,12 +92,15 @@
     <div class="coach-actions">
       <button id="dry-run-btn">Dry run</button>
       <button id="score-btn" class="primary">Score</button>
+      <button id="listen-btn" class="primary">Listen</button>
       <button id="commit-btn">Commit</button>
       <button id="discard-btn">Discard</button>
     </div>
     <p class="coach-status note" id="coach-status">dry run previews the param diff; score runs the
-    probe set on the candidate — both write nothing; only Commit persists.</p>
+    probe set on the candidate; listen renders the candidate to audio — all three write
+    nothing but the render's WAV; only Commit persists.</p>
     <div id="coach-preview"></div>
+    <audio id="coach-audio" controls preload="none" style="width:100%; display:none; margin-top:.5rem;"></audio>
   </div>
   <div class="card" id="study-card">
     <h3>Study — committed directive log</h3>
@@ -322,6 +325,24 @@ async function init() {
     setPreview(scoreTable(s));
     setStatus('score complete — nothing written.');
     logAttempt(text, 'score', attemptSummaryFor('score', s));
+  };
+
+  document.getElementById('listen-btn').onclick = async () => {
+    const text = input.value.trim();
+    if (!text) { setStatus('enter a directive first.'); return; }
+    if (!currentSeedPath()) { setStatus('pick a work first.'); return; }
+    setStatus('rendering…');
+    const j = await post('muse_rehearse.render-dry-run', [currentSeedPath(), text, '--era', currentEra()]);
+    if (!j.ok) { setStatus(`error: ${j.error || (j.stderr || '').trim() || 'render failed'}`); return; }
+    let r = null;
+    try { r = JSON.parse(j.stdout); } catch (e) { r = null; }
+    if (!r || !r.wav) { setStatus('render returned no audio.'); return; }
+    const audio = document.getElementById('coach-audio');
+    audio.style.display = '';
+    audio.src = r.wav;
+    audio.play().catch(() => {});
+    setStatus(`rendered — ${r.duration_sec}s · ${r.notes} notes. Playing the candidate.`);
+    logAttempt(text, 'listen', `${r.duration_sec}s · ${r.notes} notes`);
   };
 
   document.getElementById('commit-btn').onclick = async () => {

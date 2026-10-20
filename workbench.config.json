@@ -14,6 +14,7 @@
     "muse_generate.mockup",
     "muse_rehearse.dry-run",
     "muse_rehearse.score-dry-run",
+    "muse_rehearse.render-dry-run",
     "muse_rehearse.commit"
   ],
   "prompt_enabled": true,

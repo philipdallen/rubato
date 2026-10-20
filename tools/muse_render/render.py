@@ -81,9 +81,20 @@ class Renderer:
             gain = parts_gain.get(n.part, 1.0)
             onset_sec = self.ticks_to_sec(n.onset, mockup.tempo_map, ppq)
             dur_sec = self.ticks_to_sec(n.onset + n.duration, mockup.tempo_map, ppq) - onset_sec
+            # Rubato / chord-spread offsets the model already carries:
+            # the whole note shifts, duration is preserved.
+            onset_sec += (n.onset_offset_ms or 0.0) / 1000.0
             t0, nb = self._render_note(n.pitch, onset_sec, dur_sec, n.velocity, gain=gain)
             i0 = int(t0 * SR)
             i1 = min(len(buf), i0 + len(nb))
+            # A rubato offset can push a note's start before the render
+            # window (or past its end); clip to the window rather than
+            # letting a negative index wrap into an empty slice.
+            if i0 < 0:
+                nb = nb[-i0:]
+                i0 = 0
+            if i1 <= i0:
+                continue
             buf[i0:i1] += nb[: i1 - i0]
         peak = np.abs(buf).max()
         if peak > 1.0:

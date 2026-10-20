@@ -23,6 +23,7 @@ COMMANDS = {
     "muse_generate.prompt": ["python3", "tools/muse_generate/cli.py", "prompt"],
     "muse_generate.mockup": ["python3", "tools/muse_grow/cli.py"],
     "muse_rehearse.dry-run": ["python3", "tools/muse_rehearse/cli.py", "dry-run"],
+    "muse_rehearse.score-dry-run": ["python3", "tools/muse_rehearse/cli.py", "score-dry-run"],
     "muse_rehearse.commit": ["python3", "tools/muse_rehearse/cli.py", "commit"],
 }
 

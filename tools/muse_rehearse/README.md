@@ -10,12 +10,18 @@ directive is the lineage root of that rehearsal branch.
 
 ```bash
 python3 tools/muse_rehearse/cli.py dry-run <seed.yaml> "<directive>"
+python3 tools/muse_rehearse/cli.py score-dry-run <seed.yaml> "<directive>"
 python3 tools/muse_rehearse/cli.py commit <seed.yaml> <slug> "<directive>"
 ```
 
 - `dry-run` prints the param diff the commit would make — writes
   nothing. The mockup/stand-in is never invoked (seed-to-seed param
   diff, so the loop is fast and deterministic).
+- `score-dry-run` compiles the candidate in memory and probes it against
+  the base seed — budget fit, assertions, coverage, the gate — and
+  prints the base/candidate comparison. This is the score the dry run
+  cannot show (which knobs turned vs did it help). Also writes nothing;
+  the payload is sized to fit the runner's stdout window.
 - `commit` writes the directive file
   (`seeds/<work>.directives/<slug>.directive.txt`) and the compiled
   revision, stamping `extends: sha256(directive bytes)` +

@@ -7,8 +7,13 @@
  *   GET /manifest.json       library index (sha256 per file)
  *   GET /libs/<lib>/<path>   file bytes, Range-aware (206 partial content)
  *   HEAD /libs/<lib>/<path>  headers only
+ *   GET /workbench/*         static seed-workbench site (coaching UI) from R2
+ *   GET /audio/* /explorer/* /boardroom/* /index.html
+ *                            companion QA surfaces from R2
  *
- * Auth: `Authorization: Bearer <CDN_TOKEN>` header or `?token=` query param.
+ * Auth: `Authorization: Bearer <CDN_TOKEN>` header, `?token=` query param,
+ * or the `rubato_token` cookie (set on any ?token= visit, so the static
+ * site's plain fetch() and <audio> calls stay authenticated).
  * Presented tokens are compared in constant time (SHA-256 both sides, then a
  * fixed-length byte compare) so comparison timing cannot leak the secret one
  * byte at a time.
@@ -30,9 +35,19 @@ function json(obj, status = 200) {
 
 function bearerToken(request) {
   const h = request.headers.get("Authorization");
-  if (h && /^bearer /i.test(h)) return h.slice(7).trim();
+  if (h && /^bearer /i.test(h)) return { token: h.slice(7).trim(), via: "header" };
   const u = new URL(request.url);
-  return u.searchParams.get("token");
+  const q = u.searchParams.get("token");
+  if (q) return { token: q, via: "query" };
+  // Cookie set by an earlier ?token= visit, so the static site's plain
+  // fetch() and <audio> calls stay authenticated without page changes.
+  const cookie = request.headers.get("Cookie") || "";
+  const m = /(?:^|;\s*)rubato_token=([^;]+)/.exec(cookie);
+  if (m) {
+    try { return { token: decodeURIComponent(m[1]), via: "cookie" }; }
+    catch { return { token: null, via: null }; }
+  }
+  return { token: null, via: null };
 }
 
 /**
@@ -327,14 +342,49 @@ if (token) boot();
 </body>
 </html>`;
 
+const SITE_PREFIXES = {
+  "/workbench/": "site/workbench/",
+  "/audio/": "site/audio/",
+  "/explorer/": "site/explorer/",
+  "/boardroom/": "site/boardroom/",
+};
+
+function contentTypeFor(key) {
+  const dot = key.lastIndexOf(".");
+  const ext = dot === -1 ? "" : key.slice(dot).toLowerCase();
+  return {
+    ".html": "text/html; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".yaml": "text/yaml; charset=utf-8",
+    ".yml": "text/yaml; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".js": "application/javascript; charset=utf-8",
+    ".mjs": "application/javascript; charset=utf-8",
+    ".wav": "audio/wav",
+    ".mp3": "audio/mpeg",
+    ".ogg": "audio/ogg",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".svg": "image/svg+xml",
+  }[ext] || "application/octet-stream";
+}
+
 export default {
   async fetch(request, env) {
     // Fail closed if the secret was never set.
     if (!env.CDN_TOKEN) {
       return json({ error: "cdn token not configured" }, 503);
     }
-    if (!(await tokenMatches(bearerToken(request), env.CDN_TOKEN))) {
+    const presented = bearerToken(request);
+    if (!(await tokenMatches(presented.token, env.CDN_TOKEN))) {
       return json({ error: "unauthorized" }, 401);
+    }
+    // Authenticated via ?token=: drop a cookie so the static site's plain
+    // fetch() and <audio> calls stay authenticated for the session.
+    let setCookie = null;
+    if (presented.via === "query" && presented.token) {
+      setCookie = `rubato_token=${encodeURIComponent(presented.token)}; Path=/; Max-Age=86400; SameSite=Lax; HttpOnly`;
     }
 
     const url = new URL(request.url);
@@ -371,6 +421,47 @@ export default {
         return new Response(null, { headers });
       }
       return new Response(obj.body, { headers });
+    }
+
+    // Static QA site (workbench, explorer, boardroom) + audio, served from
+    // R2 under site/. The workbench page is the seed-coaching interface:
+    // seed/probe/growth/audio panels plus the Rehearse pane (directive
+    // dry-run/commit). The Rehearse pane POSTs to /api/run, which needs the
+    // Python runner (tools/muse_workbench_runner) — not available on Workers —
+    // so it degrades to its "runner unreachable" note; everything else works.
+    {
+      let siteKey = null;
+      if (path === "/index.html") {
+        siteKey = "site/index.html";
+      } else {
+        for (const [prefix, r2prefix] of Object.entries(SITE_PREFIXES)) {
+          if (path.startsWith(prefix)) {
+            let rest = path.slice(prefix.length);
+            try { rest = decodeURIComponent(rest); }
+            catch { return json({ error: "bad path encoding" }, 400); }
+            if (rest === "" || rest.endsWith("/")) rest += "index.html";
+            if (rest.includes("..")) return json({ error: "not found" }, 404);
+            siteKey = r2prefix + rest;
+            break;
+          }
+        }
+      }
+      if (siteKey) {
+        if (request.method !== "GET" && request.method !== "HEAD") {
+          return json({ error: "method not allowed" }, 405);
+        }
+        const obj = await env.SAMPLES.get(siteKey);
+        if (!obj) return json({ error: "not found" }, 404);
+        const headers = new Headers();
+        headers.set("Content-Type", contentTypeFor(siteKey));
+        headers.set("Cache-Control", "public, max-age=300");
+        if (setCookie) headers.set("Set-Cookie", setCookie);
+        if (request.method === "HEAD") {
+          headers.set("Content-Length", String(obj.size));
+          return new Response(null, { headers });
+        }
+        return new Response(obj.body, { headers });
+      }
     }
 
     const m = /^\/libs\/([A-Za-z0-9._-]+)\/(.+)$/.exec(path);

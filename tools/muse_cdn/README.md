@@ -43,6 +43,25 @@ routes, so scrubbing works), text preview for `.sfz`/docs, and download links.
 Paste the `CDN_TOKEN` once per tab; agents keep using `/manifest.json` and the
 `/libs/<lib>/<path>` routes, which are unchanged.
 
+## Seed workbench (coaching UI)
+
+The repo's seed workbench (`docs/workbench/detail.html` — seed/probe/growth/
+audio panels plus the Rehearse pane for coaching directives) is served from
+the same worker under `/workbench/`, with its data and the QA companion pages:
+
+/workbench/*   the workbench (detail.html is the coaching interface)
+/audio/*       workbench audio manifest (WAVs render locally, not committed)
+/explorer/*    corpus explorer      /boardroom/*  boardroom surfaces
+/index.html    QA root
+
+The files live in R2 under `site/` (uploaded from `docs/`). Open
+`/workbench/detail.html?token=<CDN_TOKEN>` once: the worker sets a
+`rubato_token` cookie so the page's plain `fetch()` and `<audio>` calls stay
+authenticated. Note the Rehearse pane's Dry run/Commit buttons POST to
+`/api/run`, which needs the Python runner (`tools/muse_workbench_runner`) —
+unavailable on Workers — so they show the runner-unreachable note; the
+read/listen surface works fully.
+
 ## Agent usage
 
 ```sh
@@ -79,7 +98,7 @@ node tests/worker_hermetic_test.mjs
 node tests/worker_test.mjs "$RUBATO_CDN_URL" "$RUBATO_CDN_TOKEN"
 ```
 
-`worker_hermetic_test.mjs` (18 checks) starts `wrangler dev` against a
+`worker_hermetic_test.mjs` (26 checks) starts `wrangler dev` against a
 throwaway `--persist-to` directory, seeds `manifest.json` + one library file
 into the local R2 binding, and passes the token as a literal `--var` — so it
 needs no `CDN_TOKEN` and never touches the network. It covers auth gating,

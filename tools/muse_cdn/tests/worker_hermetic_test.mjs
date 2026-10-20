@@ -55,6 +55,7 @@ const fixtureDir = join(stateDir, "fixtures");
 mkdirSync(join(fixtureDir, "samples"), { recursive: true });
 writeFileSync(join(fixtureDir, "manifest.json"), JSON.stringify(manifest));
 writeFileSync(join(fixtureDir, "hello.wav"), bytes);
+writeFileSync(join(fixtureDir, "page.html"), "<!doctype html><title>wb</title>");
 
 const wranglerEnv = {
   ...process.env,
@@ -82,6 +83,8 @@ function seed(key, file) {
 seed("manifest.json", join(fixtureDir, "manifest.json"));
 seed(`libs/demo-lib/${PLAIN_NAME}`, join(fixtureDir, "hello.wav"));
 seed(`libs/demo-lib/${SPACED_NAME}`, join(fixtureDir, "hello.wav"));
+seed("site/workbench/detail.html", join(fixtureDir, "page.html"));
+seed("site/workbench/index.html", join(fixtureDir, "page.html"));
 
 const server = spawn(
   WRANGLER,
@@ -215,6 +218,53 @@ try {
   {
     const r = await fetch(root + "/", { method: "POST", headers: auth });
     check("POST / -> 405", r.status === 405);
+    await r.arrayBuffer().catch(() => {});
+  }
+
+  // 15-20: static site routes (workbench coaching UI)
+  {
+    const r = await fetch(root + "/workbench/detail.html");
+    check("no-token site page -> 401", r.status === 401);
+    await r.arrayBuffer().catch(() => {});
+  }
+  {
+    const r = await fetch(root + "/workbench/detail.html", { headers: auth });
+    const body = await r.text();
+    check("GET site page -> 200 text/html", r.status === 200 &&
+      (r.headers.get("content-type") || "").includes("text/html") &&
+      body.includes("<title>wb</title>"));
+  }
+  {
+    const r = await fetch(root + "/workbench/");
+    check("no-token site dir -> 401", r.status === 401);
+    await r.arrayBuffer().catch(() => {});
+  }
+  {
+    const r = await fetch(root + "/workbench/", { headers: auth });
+    check("GET /workbench/ -> 200 (index.html mapping)", r.status === 200);
+    await r.arrayBuffer().catch(() => {});
+  }
+  {
+    const r = await fetch(root + "/workbench/detail.html?token=" + TOKEN);
+    const setCookie = r.headers.get("set-cookie") || "";
+    check("?token= sets rubato_token cookie", r.status === 200 &&
+      setCookie.includes("rubato_token="));
+    await r.arrayBuffer().catch(() => {});
+    const cookie = setCookie.split(";")[0];
+    const r2 = await fetch(root + "/workbench/detail.html", { headers: { Cookie: cookie } });
+    check("cookie authenticates site fetch", r2.status === 200);
+    await r2.arrayBuffer().catch(() => {});
+  }
+  {
+    const r = await fetch(root + "/workbench/detail.html", { method: "POST", headers: auth });
+    check("POST site page -> 405", r.status === 405);
+    await r.arrayBuffer().catch(() => {});
+  }
+  {
+    // %2f is not a path separator to the URL parser, so this reaches the
+    // worker intact and must be rejected after decode.
+    const r = await fetch(root + "/workbench/..%2fmanifest.json", { headers: auth });
+    check("path traversal -> 404", r.status === 404);
     await r.arrayBuffer().catch(() => {});
   }
 } catch (e) {

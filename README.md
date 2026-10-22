@@ -109,3 +109,7 @@ lives in [docs/pipeline.md](docs/pipeline.md).
 4. **Composer-owned, rights-carrying.** Plaintext manifest: license,
    provenance, AI disclosure. No artist lookalikes without license.
 5. **Own the format, not the models.** LLMs are the utility; Rubato is the radio.
+
+## Cite this work
+
+Citation metadata live in [CITATION.cff](CITATION.cff); GitHub's "Cite this repository" reads them.

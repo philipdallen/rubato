@@ -1,0 +1,17 @@
+{
+  "title": "Rubato: an executable, AI-native music format",
+  "upload_type": "software",
+  "creators": [
+    {
+      "name": "Allen, Philip"
+    }
+  ],
+  "license": "MIT",
+  "keywords": [
+    "executable music format",
+    "MusicXML",
+    "interpretive prompt",
+    "LLM player",
+    "deterministic playback"
+  ]
+}

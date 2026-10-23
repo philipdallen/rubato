@@ -26,7 +26,7 @@ Two processes act on it, and they are different in kind:
   session work (tempo map, curves, velocities, balance), produces a mockup
   worth listening to. The product.
 
-## The pipeline: 12 tools, 452 tests, one gate
+## The pipeline: 39 suites, about 1100 tests, one gate
 
 The build runs on a ladder. Each rung is a tool; each tool has tests; the
 ladder is the ratchet:
@@ -54,7 +54,7 @@ L1 — mockup harness          (dense DNA: chord spread, attack/release, swell)
 P-series player              (decoder → renderer, conformance suite)
 ```
 
-The conformance gate runs **12 suites, 452 tests** on every push. Beethoven 9
+The conformance gate runs **39 suites, about 1100 tests** on every push. Beethoven 9
 (239,459 notes, 52 parts) is the v1.0 target — the CD was sized for it; the
 format is designed for the space of all of them.
 

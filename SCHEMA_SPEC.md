@@ -289,7 +289,7 @@ A renderer is **Rubato-conforming** if it:
 - **v0.1 (2026-08-22):** shared 12-TET pitch grammar pinned for `material.motifs[].pitches` and `constraints.register` bounds (issue #44).
 - **v0.1 (2026-08-22):** `metadata.provenance` items sealed (`additionalProperties: false`), matching every other fixed-shape object (issue #45).
 - **v0.1 (2026-08-22):** transform-ref grammar enforced on `form.sections[].uses[].ref` via shared `$defs/materialRef`; `uses[].variation` pinned as free text (issue #46).
-- **v0.1 (2026-08-22):** §7 performance layer drafted (v0) from `docs/scope-batch3.md` (issue #21).
+- **v0.1 (2026-08-22):** §7 performance layer drafted (v0) from the batch-3 scope doc (removed in the docs-only pivot; issue #21).
 
 ## 6. Open questions for v0.x
 
@@ -300,8 +300,9 @@ A renderer is **Rubato-conforming** if it:
 
 ## 7. Performance layer (draft v0)
 
-> **Draft v0, unstable.** Shapes below follow `docs/scope-batch3.md`; v0.x
-> may break freely, additive-only discipline starts at v1.
+> **Draft v0, unstable.** Shapes below follow the batch-3 scope doc (removed
+> in the docs-only pivot); v0.x may break freely, additive-only discipline
+> starts at v1.
 
 A **performance document** (`*.muse.perf.json`) is the concrete event format an
 interpreter produces from a schema + rendition and a player renders to audio.

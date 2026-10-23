@@ -61,9 +61,10 @@ introduced by the surface itself.
 
 ## Provenance-complete recording manifest
 
-A plaintext `recording_manifest.json` ships in the bundle, following the
-`tools/muse_mu/manifest.py` conventions (FORMAT_SPEC §3; D13: provenance
-mandatory; D18: SHA-256 content hashes, HMAC-SHA256 signature):
+A plaintext recording_manifest.json (planned artifact; this doc is a draft
+publication plan and the event has not happened yet) ships in the bundle,
+following the `tools/muse_mu/manifest.py` conventions (FORMAT_SPEC §3; D13:
+provenance mandatory; D18: SHA-256 content hashes, HMAC-SHA256 signature):
 
 - `work`: the performed `.mu` content hash, title, composer, source
   edition, license.
@@ -84,7 +85,7 @@ mandatory; D18: SHA-256 content hashes, HMAC-SHA256 signature):
 
 1. Mix/master the house recording; archive raw stems.
 2. Assemble the bundle: audio, film, `.mu`, manifest, trace, liner notes.
-3. Generate `recording_manifest.json`; hash and sign every member.
+3. Generate recording_manifest.json (planned); hash and sign every member.
 4. Verify the manifest by hand (plaintext — rights are for lawyers) and by
    tooling (hash check against the bundle).
 5. Publish film to the video surface; bundle to the project site.

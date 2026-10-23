@@ -70,7 +70,7 @@ infrastructure. Check 3 is a read-and-verify pass.
 
 ## Deliverables
 
-- `docs/audit/YYYY-MM-DD-system-audit.md` — one row per module:
+- `docs/audit/<YYYY-MM-DD>-system-audit.md` — one row per module (naming pattern; `<YYYY-MM-DD>` is a placeholder):
   module, doc claim, evidence (command + result), verdict
   (works / broken / drift / unpinned), linked findings.
 - The findings issues themselves.

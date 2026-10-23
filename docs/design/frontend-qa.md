@@ -34,7 +34,7 @@ beyond localhost.
 
 ## Tier 3 — Live deploy smoke (RETIRED 2026-09-16)
 
-> **Retired.** The Netlify QA site is gone: `netlify.toml`, the Tier 3 spec
+> **Retired.** The Netlify QA site is gone: netlify.toml, the Tier 3 spec
 > and the live-smoke test were removed, and the site's builds were stopped at
 > the API level. There is no hosted deploy of `docs/` any more, so there is
 > nothing for a post-deploy smoke to poll.

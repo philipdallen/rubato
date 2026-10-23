@@ -28,9 +28,14 @@ byte-for-byte; `llm-*` entries are artifacts of a moment).
 ## Mockup paths
 
 - **stand-in** (default): flat-velocity notes (probe-engine/G1 stand-in
-  convention) parametrized by the seed's tempo range — arch shape peaking
-  at `max_bpm`, floor at `min_bpm`, so a seed revision that moves the
-  tempo range is audible. Deterministic per (work, seed).
+  convention) parametrized by the seed's audible parameters — the tempo
+  range as an arch, `tempo_flex` variation points as raised-cosine tempo
+  dips inside their regions, `part_gains` as per-part render gains, and
+  `articulation.rubato_pstdev_ms` as fixed-seed Gaussian onset offsets —
+  so every performance verb in the directive grammar is audible:
+  `tempo_arch` and `phrase` move the tempo map, `rebalance` moves the
+  balance, `rubato` moves the timing. Assertions (`hold`) are
+  constraints and stay silent. Deterministic per (work, seed).
 - **live** (`--live`): `muse_generate.generate_mockup` through
   `GeminiProvider(live=True)`. The schema-v1 indexed dict is converted to
   the Mockup model (`_schema_dict_to_mockup`); the work's ppq is stamped
@@ -42,6 +47,13 @@ D20: WAVs only cross the boundary. Mockups never leave the pipeline.
 
 - `render_revision(work_path, seed_path, label, out_dir=..., live=False,
   provider=None) -> RenderResult`
+- `render_seed(work, seed, out_path, tier="sine", sample_root=None)` —
+  the in-memory path for uncommitted candidates (the coaching loop's
+  ear: `muse_rehearse render-dry-run` calls it). `tier="sine"` is the
+  instant envelope-at-pitch stand-in; `tier="samples"` renders through
+  the muse_sample VSCO 2 CE pools (needs the sample root, via argument
+  or `RUBATO_SAMPLE_ROOT`). Returns `(duration_sec, notes, sha256,
+  library)`.
 - `write_manifest(results, out_dir=...) -> path`
 - `AUDIO_DIR` (docs/audio), `RenderResult` dataclass
 

@@ -26,7 +26,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
+import random
 from dataclasses import dataclass, field
 
 REPO = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -34,6 +36,8 @@ AUDIO_DIR = os.path.join(REPO, "docs", "audio")
 MANIFEST_NAME = "manifest.json"
 
 ARCH_POINTS = 8  # tempo_map resolution for the arch shape
+_FLEX_SAMPLES = 16  # tempo_map resolution inside a tempo_flex region
+_RUBATO_SEED = 0xC0AC4  # fixed PRNG seed: rubato offsets are deterministic
 
 
 @dataclass
@@ -47,31 +51,89 @@ class RenderResult:
     sha256: str
 
 
-def _stand_in_mockup(work, seed):
-    """Deterministic mockup parametrized by the seed's tempo params.
+def _flex_multiplier(variation_points, tick):
+    """Raised-cosine tempo dip for tempo_flex variation points.
 
-    Same flat notes as the probe engine stand-in, but the tempo_map is an
-    arch between the seed's min/max bpm (endpoints at min, peak at max) —
-    so a seed revision that moves the tempo range is audible in the WAV.
+    Each point eases the tempo to ``1 - budget`` at its region midpoint
+    and restores by the region end; overlapping regions multiply. This is
+    what the ``phrase`` directive sounds like. (The directive compiler
+    does not stamp the phrase's direction into the variation point, so
+    the curve is one fixed shape; stamping direction is a compiler
+    follow-up.)
+    """
+    mult = 1.0
+    for vp in variation_points or []:
+        if not isinstance(vp, dict) or vp.get("kind") != "tempo_flex":
+            continue
+        region = vp.get("region") or [0, 0]
+        start, end = region[0], region[1]
+        if end <= start or tick < start or tick >= end:
+            continue
+        budget = vp.get("budget", 0.2) or 0.0
+        x = (tick - start) / (end - start)
+        mult *= 1.0 - budget * (math.sin(math.pi * x) ** 2)
+    return mult
+
+
+def _stand_in_mockup(work, seed):
+    """Deterministic mockup parametrized by the seed's audible params.
+
+    Same flat notes as the probe engine stand-in, but the seed's
+    interpretive parameters shape the performance, so a coaching
+    directive is audible in the WAV:
+
+    - ``params.tempo`` min/max bpm: arch tempo map (endpoints at min,
+      peak at max) — what ``tempo_arch`` sounds like;
+    - ``variation_points`` of kind ``tempo_flex``: raised-cosine dip
+      multiplied onto the arch inside each region — what ``phrase``
+      sounds like;
+    - ``params.part_gains``: per-part gain in the mockup's part_map,
+      which the renderer applies — what ``rebalance`` sounds like;
+    - ``params.articulation.rubato_pstdev_ms``: per-note onset offsets
+      from a fixed-seed Gaussian — what ``rubato`` sounds like.
+
+    Deterministic per (work, seed): the rubato PRNG is fixed-seed, so
+    re-rendering reproduces the WAV byte-for-byte.
     """
     from muse_mockup import Mockup, Note
 
     mockup = Mockup(work_id=getattr(getattr(work, "meta", None), "title", None) or "unknown")
+    params = getattr(seed, "params", {}) or {} if seed is not None else {}
+    gains = params.get("part_gains", {}) or {}
+    articulation = params.get("articulation", {}) or {}
+    rubato_ms = articulation.get("rubato_pstdev_ms", 0.0) or 0.0
+    vps = getattr(seed, "variation_points", []) or [] if seed is not None else []
+
+    rng = random.Random(_RUBATO_SEED)
     for p in work.parts:
         for n in p.notes:
             if n.pitch is None or "unpitched" in n.notations:
                 continue
+            offset = rng.gauss(0.0, rubato_ms) if rubato_ms else 0.0
             mockup.notes.append(Note(pitch=n.pitch, onset=n.onset,
                                      duration=n.duration, velocity=64,
-                                     part=p.id))
-    tempo = getattr(seed, "params", {}).get("tempo", {}) if seed is not None else {}
+                                     onset_offset_ms=offset, part=p.id))
+    for part, gain in gains.items():
+        mockup.part_map[part] = {"gain": gain}
+
+    tempo = params.get("tempo", {}) or {}
     lo = float(tempo.get("min_bpm", 60))
     hi = float(tempo.get("max_bpm", 120))
     last_tick = max((n.onset + n.duration for n in mockup.notes), default=0)
-    for k in range(ARCH_POINTS + 1):
-        tick = round(last_tick * k / ARCH_POINTS)
-        bpm = lo + (hi - lo) * 4 * (k / ARCH_POINTS) * (1 - k / ARCH_POINTS)
-        mockup.tempo_map.append((tick, round(bpm * 1000)))  # milli-bpm
+    ticks = {round(last_tick * k / ARCH_POINTS) for k in range(ARCH_POINTS + 1)}
+    for vp in vps:
+        if not isinstance(vp, dict) or vp.get("kind") != "tempo_flex":
+            continue
+        region = vp.get("region") or [0, 0]
+        start, end = region[0], region[1]
+        if end > start:
+            for i in range(_FLEX_SAMPLES + 1):
+                ticks.add(int(start + (end - start) * i / _FLEX_SAMPLES))
+    for tick in sorted(ticks):
+        x = tick / last_tick if last_tick else 0
+        bpm = lo + (hi - lo) * 4 * x * (1 - x)
+        bpm *= _flex_multiplier(vps, tick)
+        mockup.tempo_map.append((tick, round(max(1.0, bpm) * 1000)))  # milli-bpm
     return mockup
 
 
@@ -124,6 +186,57 @@ def _live_mockup(work, seed, provider):
     return _schema_dict_to_mockup(mockup_dict, work)
 
 
+def _render_mockup_to_wav(work, mockup, out_path):
+    """Stamp ppq, validate, render, hash. Shared by the revision and
+    candidate paths."""
+    from muse_render import render_to_file
+
+    # L2 renders in the mockup's tick domain — stamp the work's resolution
+    # (mxl parses to ppq=2; the renderer defaults to 480 otherwise).
+    mockup.ppq = work.meta.ppq
+    mockup.validate()
+
+    os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
+    meta = render_to_file(mockup, out_path)
+    with open(out_path, "rb") as fh:
+        digest = hashlib.sha256(fh.read()).hexdigest()
+    return meta, digest
+
+
+def render_seed(work, seed, out_path, tier="sine", sample_root=None):
+    """Render an in-memory (possibly uncommitted) seed to a WAV file.
+
+    The coaching loop's ear: a directive compiles to a candidate seed,
+    this renders what the candidate sounds like. Deterministic per
+    (work, seed) — same candidate always yields the same bytes.
+
+    ``tier="sine"`` is the instant stand-in (envelope at pitch
+    frequency, sub-second). ``tier="samples"`` renders through the
+    sample pools (VSCO 2 CE from the Rubato CDN) — higher quality,
+    slower; needs ``sample_root`` (or the ``RUBATO_SAMPLE_ROOT`` env).
+    """
+    if tier == "samples":
+        from muse_sample import load_pools, render_mockup_samples
+        root = sample_root or os.environ.get("RUBATO_SAMPLE_ROOT")
+        if not root or not os.path.isdir(root):
+            raise SampleRootMissing(
+                "tier=samples needs a sample root: pass sample_root or set "
+                "RUBATO_SAMPLE_ROOT")
+        mockup = _stand_in_mockup(work, seed)
+        mockup.ppq = work.meta.ppq
+        meta = render_mockup_samples(mockup, load_pools(root), out_path)
+        with open(out_path, "rb") as fh:
+            digest = hashlib.sha256(fh.read()).hexdigest()
+        return meta["duration_sec"], meta["notes"], digest, meta["library"]
+    mockup = _stand_in_mockup(work, seed)
+    meta, digest = _render_mockup_to_wav(work, mockup, out_path)
+    return meta["duration_sec"], meta["notes"], digest, "sine stand-in"
+
+
+class SampleRootMissing(FileNotFoundError):
+    """tier=samples was requested without a sample root."""
+
+
 def render_revision(work_path, seed_path, label, out_dir=AUDIO_DIR,
                     live=False, provider=None):
     """Render one (work, seed revision) to <work_id>.<label>.wav.
@@ -133,7 +246,6 @@ def render_revision(work_path, seed_path, label, out_dir=AUDIO_DIR,
     deterministic stand-in is used.
     """
     from muse_ir import load
-    from muse_render import render_to_file
     from muse_seed import load_seed
 
     work = load(work_path)
@@ -151,18 +263,11 @@ def render_revision(work_path, seed_path, label, out_dir=AUDIO_DIR,
     else:
         mockup = _stand_in_mockup(work, seed)
         origin = "stand-in"
-    # L2 renders in the mockup's tick domain — stamp the work's resolution
-    # (mxl parses to ppq=2; the renderer defaults to 480 otherwise).
-    mockup.ppq = work.meta.ppq
-    mockup.validate()
 
     work_id = getattr(seed, "work_id", None) or mockup.work_id
-    os.makedirs(out_dir, exist_ok=True)
     wav_name = f"{work_id}.{label}.wav"
     out_path = os.path.join(out_dir, wav_name)
-    meta = render_to_file(mockup, out_path)
-    with open(out_path, "rb") as fh:
-        digest = hashlib.sha256(fh.read()).hexdigest()
+    meta, digest = _render_mockup_to_wav(work, mockup, out_path)
     return RenderResult(work_id=work_id, label=label, origin=origin,
                         wav=wav_name, duration_sec=meta["duration_sec"],
                         notes=meta["notes"], sha256=digest)

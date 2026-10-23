@@ -150,3 +150,69 @@ class TestLivePathWiring:
         assert r.origin == "llm-live"
         assert r.notes == 279
         assert 30.0 < r.duration_sec < 80.0
+
+
+class TestCoachingAudibility:
+    """Every performance verb must move the stand-in audio; constraints
+    must not. The coaching loop is deaf without this."""
+
+    def _work_seed(self):
+        import copy
+        from muse_ir import load
+        from muse_seed import load_seed
+        work = load(WORK)
+        seed = load_seed(open(SEED_V1).read(), fmt="yaml")
+        return work, seed
+
+    def _sha(self, tmp_path, seed, label):
+        from muse_audio.audio import render_seed
+        work, _ = self._work_seed()
+        _, _, digest, _ = render_seed(
+            work, seed, str(tmp_path / f"{label}.wav"))
+        return digest
+
+    def test_rebalance_is_audible(self, tmp_path):
+        import copy
+        work, seed = self._work_seed()
+        base = self._sha(tmp_path, seed, "base")
+        cand = copy.deepcopy(seed)
+        cand.params.setdefault("part_gains", {})["P4"] = 1.5
+        assert self._sha(tmp_path, cand, "cand") != base
+
+    def test_phrase_is_audible(self, tmp_path):
+        import copy
+        work, seed = self._work_seed()
+        base = self._sha(tmp_path, seed, "base")
+        cand = copy.deepcopy(seed)
+        cand.variation_points = [{
+            "region": [0, 76], "kind": "tempo_flex",
+            "budget": 0.2, "assertions": {}}]
+        assert self._sha(tmp_path, cand, "cand") != base
+
+    def test_rubato_is_audible(self, tmp_path):
+        import copy
+        work, seed = self._work_seed()
+        base = self._sha(tmp_path, seed, "base")
+        cand = copy.deepcopy(seed)
+        cand.params.setdefault("articulation", {})["rubato_pstdev_ms"] = 16.0
+        assert self._sha(tmp_path, cand, "cand") != base
+
+    def test_constraint_is_silent(self, tmp_path):
+        # A hold only adds an assertion — the performance is unchanged.
+        import copy
+        work, seed = self._work_seed()
+        base = self._sha(tmp_path, seed, "base")
+        cand = copy.deepcopy(seed)
+        cand.assertions = dict(cand.assertions or {})
+        cand.assertions["tempo_bounds"] = {"min_bpm": 90, "max_bpm": 100}
+        assert self._sha(tmp_path, cand, "cand") == base
+
+    def test_parametrized_render_deterministic(self, tmp_path):
+        import copy
+        work, seed = self._work_seed()
+        cand = copy.deepcopy(seed)
+        cand.params.setdefault("part_gains", {})["P4"] = 1.5
+        cand.params.setdefault("articulation", {})["rubato_pstdev_ms"] = 16.0
+        a = self._sha(tmp_path, cand, "a")
+        b = self._sha(tmp_path, cand, "b")
+        assert a == b

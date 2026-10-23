@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Muse coaching sessions</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { color-scheme: dark; }
+  body { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background:#0d1117; color:#c9d1d9; margin:0; padding:2rem; }
+  h1 { font-size:1.4rem; color:#f0f6fc; }
+  h2 { font-size:1.05rem; color:#8b949e; border-bottom:1px solid #30363d; padding-bottom:.3rem; margin-top:2rem; }
+  .card { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:1rem; min-width:0; margin-bottom:1rem; }
+  .card h3 { margin-top:0; font-size:.85rem; color:#58a6ff; text-transform:uppercase; letter-spacing:.05em; }
+  .note { color:#8b949e; font-size:.75rem; }
+  .tag { font-size:.68rem; padding:.1rem .4rem; border-radius:6px; background:#21262d; color:#8b949e; }
+  .ok { background:#238636; color:#fff; }
+  .pass { color:#3fb950; }
+  .fail { color:#f85149; }
+  .warn { color:#d29922; }
+  pre { overflow-x:auto; max-width:100%; font-size:.75rem; line-height:1.35; color:#a5d6ff; }
+  table { border-collapse:collapse; width:100%; font-size:.78rem; }
+  td, th { padding:.3rem .5rem; text-align:left; border-bottom:1px solid #21262d; }
+  th { color:#8b949e; }
+  .controls { display:flex; gap:1rem; align-items:center; margin:1rem 0; padding:.75rem 1rem; background:#161b22; border:1px solid #30363d; border-radius:8px; flex-wrap:wrap; }
+  .controls select, .controls button { background:#0d1117; color:#c9d1d9; border:1px solid #30363d; border-radius:6px; padding:.3rem .6rem; font:inherit; }
+  .controls button { cursor:pointer; color:#58a6ff; border-color:#58a6ff; }
+  .controls button:hover { background:#58a6ff; color:#0d1117; }
+  .coach textarea { width:100%; box-sizing:border-box; background:#0d1117; color:#c9d1d9;
+    border:1px solid #30363d; border-radius:6px; padding:.4rem;
+    font:inherit; font-size:.78rem; min-height:3.4rem; resize:vertical; }
+  .coach-actions { display:flex; gap:.4rem; margin:.5rem 0; flex-wrap:wrap; }
+  .coach-actions button { background:#21262d; color:#c9d1d9; border:1px solid #30363d;
+    border-radius:6px; padding:.3rem .7rem; cursor:pointer; font:inherit; font-size:.75rem; }
+  .coach-actions button:hover { border-color:#58a6ff; color:#58a6ff; }
+  .coach-actions button.primary { border-color:#58a6ff; color:#58a6ff; }
+  .coach-status { font-size:.75rem; color:#8b949e; margin:.3rem 0; }
+  .split { display:grid; grid-template-columns: 1fr 1fr; gap:1rem; }
+  @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
+  .split > * { min-width: 0; }
+  .probe { display:flex; justify-content:space-between; padding:.25rem 0; font-size:.8rem; border-bottom:1px dashed #21262d; }
+  .probe:last-child { border-bottom:none; }
+  .sess-row { display:flex; gap:.6rem; align-items:baseline; padding:.3rem 0; font-size:.78rem; border-bottom:1px dashed #21262d; }
+  .sess-row:last-child { border-bottom:none; }
+  .sess-text { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sess-meta { color:#8b949e; font-size:.72rem; white-space:nowrap; }
+
+  /* site-nav - shared QA surface nav (issue #304). The markup and CSS are
+     identical on every page; test_workbench_nav pins the drift. */
+  .site-nav { display:flex; flex-wrap:wrap; gap:.35rem .9rem; align-items:baseline;
+    padding:.5rem .8rem; margin:0 0 1.25rem; background:#161b22;
+    border:1px solid #30363d; border-radius:8px; font-size:.78rem; }
+  .site-nav a { color:#58a6ff; text-decoration:none; }
+  .site-nav a:hover { text-decoration:underline; }
+  .site-nav .sn-root { color:#f0f6fc; font-weight:bold; margin-right:auto; }
+</style>
+</head>
+<body>
+<h1>Coaching sessions</h1>
+<p class="tag">QA-only, static. A rehearsal session: directives tried against one seed, each with its score.</p>
+<nav class="site-nav" aria-label="Muse QA surfaces">
+  <a class="sn-root" href="/index.html">Muse QA</a>
+  <a href="/explorer/">Corpus explorer</a>
+  <a href="/workbench/detail.html">Seed workbench</a>
+  <a href="/workbench/coach.html">Coaching</a>
+  <a href="/workbench/files.html">Files</a>
+  <a href="/workbench/terminal.html">Terminal</a>
+  <a href="/boardroom/">Boardroom</a>
+</nav>
+
+<div class="controls">
+  <label>work:
+    <select id="work-select" aria-label="work"></select>
+  </label>
+  <label>seed revision:
+    <select id="seed-select" aria-label="seed revision"></select>
+  </label>
+  <label>era budget:
+    <select id="era-select" aria-label="era budget">
+      <option value="baroque">baroque</option>
+      <option value="classical">classical</option>
+      <option value="romantic">romantic</option>
+    </select>
+  </label>
+  <span class="note" id="base-note"></span>
+</div>
+
+<div class="split">
+  <div class="card coach" id="coach-card">
+    <h3>Rehearse — directive</h3>
+    <textarea id="directive-input" aria-label="rehearsal directive"
+      placeholder="phrase: quieter at bar 8"></textarea>
+    <div class="coach-actions">
+      <button id="dry-run-btn">Dry run</button>
+      <button id="score-btn" class="primary">Score</button>
+      <button id="listen-btn" class="primary">Listen</button>
+      <select id="listen-tier" aria-label="render tier">
+        <option value="sine">sine (fast)</option>
+        <option value="samples" selected>samples (quality)</option>
+      </select>
+      <button id="commit-btn">Commit</button>
+      <button id="discard-btn">Discard</button>
+    </div>
+    <p class="coach-status note" id="coach-status">dry run previews the param diff; score runs the
+    probe set on the candidate; listen renders the candidate to audio — all three write
+    nothing but the render's WAV; only Commit persists.</p>
+    <div id="coach-preview"></div>
+    <audio id="coach-audio" controls preload="none" style="width:100%; display:none; margin-top:.5rem;"></audio>
+  </div>
+  <div class="card" id="study-card">
+    <h3>Study — committed directive log</h3>
+    <div id="study-log"><p class="note">no directives committed yet</p></div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Session log</h3>
+  <div id="session-log"><p class="note">no attempts this session — dry run or score a directive to log one.</p></div>
+  <div class="coach-actions">
+    <button id="export-btn">Export session JSON</button>
+    <button id="clear-btn">Clear session</button>
+  </div>
+  <p class="note">the log lives in this page only; export it to keep a record. Committing a
+  directive writes the directive file + revision to the repo; the log itself is never committed.</p>
+</div>
+
+<script>
+// Runner URL, resolved the same way as the workbench pages: ?runner=… query,
+// then window.MUSE_RUNNER_URL, then a <meta name="muse-runner-url">. ''
+// means same origin (the runner serves the static site and /api together),
+// so no host/port is hard-coded (#305).
+function resolveRunnerUrl() {
+  const meta = document.querySelector('meta[name="muse-runner-url"]');
+  const fromMeta = meta && meta.getAttribute('content');
+  const fromQuery = new URLSearchParams(location.search).get('runner');
+  return fromQuery || window.MUSE_RUNNER_URL || fromMeta || '';
+}
+const RUNNER_URL = resolveRunnerUrl();
+const RUNNER_HINT = 'runner unreachable — start it with python3 tools/muse_workbench_runner/server.py --docs';
+
+async function loadJSON(p) { const r = await fetch(p); return r.ok ? r.json() : null; }
+
+const session = [];   // attempts this session, in order
+let seedIndex = { seeds: [] };
+let currentSeed = null; // {work_id, file, seedPath}
+
+function esc(s) { return String(s).replace(/[<>&]/g, ''); }
+
+function rehearseSlug(text) {
+  return String(text).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+async function post(name, args) {
+  try {
+    const r = await fetch(RUNNER_URL + '/api/run', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, args }),
+    });
+    return await r.json();
+  } catch (e) {
+    return { ok: false, error: RUNNER_HINT };
+  }
+}
+
+function setStatus(msg) { document.getElementById('coach-status').textContent = msg; }
+function setPreview(html) { document.getElementById('coach-preview').innerHTML = html; }
+
+// --- dry run: the param diff, same row format as the workbench probe panel ---
+function diffTable(diff) {
+  const changes = diff && diff.changes ? diff.changes : {};
+  const keys = Object.keys(changes);
+  if (!keys.length) return '<p class="note">no param changes — the directive is a no-op.</p>';
+  const rows = keys.map(k => {
+    const c = changes[k] || {};
+    return `<tr><td>${esc(k)}</td><td>${esc(JSON.stringify(c.from))}</td><td>${esc(JSON.stringify(c.to))}</td></tr>`;
+  }).join('');
+  return `<table><tr><th>param</th><th>from</th><th>to</th></tr>${rows}</table>`;
+}
+
+// --- score: candidate vs base across the seed-sensitive probes ---
+function budgetRows(base, cand) {
+  const byParam = {};
+  for (const c of (base.budget_fit.checks || [])) byParam[c.param] = { base: c };
+  for (const c of (cand.budget_fit.checks || [])) (byParam[c.param] = byParam[c.param] || {}).cand = c;
+  return Object.entries(byParam).map(([param, v]) => {
+    const b = v.base, c = v.cand;
+    const cell = (x) => x ? `<span class="${x.inside ? 'pass' : 'warn'}">${x.inside ? 'inside' : 'outside'}</span>` : '<span class="note">—</span>';
+    const moved = b && c && b.inside !== c.inside;
+    return `<tr><td>budget: ${esc(param)}</td><td>${cell(b)}</td><td>${cell(c)}</td><td>${moved ? '<span class="warn">moved</span>' : ''}</td></tr>`;
+  }).join('');
+}
+
+function assertionRows(base, cand) {
+  const rows = [];
+  const bA = base.assertions.assertions || [], cA = cand.assertions.assertions || [];
+  for (let i = 0; i < Math.max(bA.length, cA.length); i++) {
+    const b = bA[i], c = cA[i];
+    const cell = (x) => x ? `<span class="${x.status}">${x.status}</span>` : '<span class="note">—</span>';
+    const moved = b && c && b.status !== c.status;
+    rows.push(`<tr><td>assertion: ${esc((c || b).kind)}</td><td>${cell(b)}</td><td>${cell(c)}</td><td>${moved ? '<span class="warn">moved</span>' : ''}</td></tr>`);
+  }
+  return rows.join('');
+}
+
+function scoreTable(s) {
+  const { base, candidate: cand, changed, delta_curves } = s;
+  const cov = (x) => `${x.coverage.exercised}/${x.coverage.variation_points}`;
+  const fid = (x) => x.fidelity_guard.fidelity
+    ? `<span class="pass">clean</span>`
+    : `<span class="fail">missing=${x.fidelity_guard.missing} extra=${x.fidelity_guard.extra}</span>`;
+  const det = (x) => x.determinism.stable ? '<span class="pass">stable</span>' : '<span class="fail">unstable</span>';
+  const gate = (x) => `<span class="${x.ok ? 'pass' : 'fail'}">${x.ok ? 'passing' : 'failing'}</span>`;
+  const parts = Object.entries(delta_curves && delta_curves.parts || {}).map(([p, v]) =>
+    `<tr><td>${esc(p)}</td><td>${v.source_ioi_mean}</td><td>${v.mockup_ioi_mean}</td><td>${v.drift_ratio}</td></tr>`).join('');
+  return `
+  <p class="note">changed params: ${changed.length ? changed.map(esc).join(', ') : 'none'}</p>
+  <table><tr><th>probe</th><th>base</th><th>candidate</th><th></th></tr>
+    ${budgetRows(base, cand)}
+    ${assertionRows(base, cand)}
+    <tr><td>coverage</td><td>${cov(base)}</td><td>${cov(cand)}</td><td>${cov(base) !== cov(cand) ? '<span class="warn">moved</span>' : ''}</td></tr>
+    <tr><td>gate (fidelity + determinism + assertions)</td><td>${gate(base)}</td><td>${gate(cand)}</td><td></td></tr>
+    <tr><td>score fidelity</td><td>${fid(base)}</td><td>${fid(cand)}</td><td></td></tr>
+    <tr><td>determinism</td><td>${det(base)}</td><td>${det(cand)}</td><td></td></tr>
+  </table>
+  <p class="note">delta curves are work-fixed (the mockup is deterministic from the work, not the
+  seed) — shown once as context, not as a candidate effect:</p>
+  <table><tr><th>part</th><th>source IOI</th><th>mockup IOI</th><th>drift</th></tr>${parts}</table>`;
+}
+
+function logAttempt(directive, kind, summary) {
+  session.push({ directive, kind, summary, at: new Date().toISOString(), committed: false });
+  renderSession();
+}
+
+function renderSession() {
+  const el = document.getElementById('session-log');
+  if (!session.length) {
+    el.innerHTML = '<p class="note">no attempts this session — dry run or score a directive to log one.</p>';
+    return;
+  }
+  el.innerHTML = session.map((a, i) => `
+    <div class="sess-row">
+      <span class="tag ${a.committed ? 'ok' : ''}">${a.committed ? 'committed' : a.kind}</span>
+      <span class="sess-text">${esc(a.directive)}</span>
+      <span class="sess-meta">${esc(a.summary)}</span>
+    </div>`).join('');
+}
+
+function attemptSummaryFor(kind, payload) {
+  if (kind === 'dry-run') {
+    const keys = Object.keys((payload && payload.changes) || {});
+    return keys.length ? `changed: ${keys.join(', ')}` : 'no-op';
+  }
+  // score
+  const b = payload.base, c = payload.candidate;
+  const bits = [];
+  bits.push(c.ok ? 'gate passing' : 'gate FAILING');
+  if (c.coverage.exercised !== b.coverage.exercised) bits.push(`coverage ${b.coverage.exercised}→${c.coverage.exercised}`);
+  return bits.join(' · ');
+}
+
+// Runner args are repo-relative (the CLI resolves against the repo root);
+// page fetches are docs/workbench-relative. Matches detail.html's pane.
+function currentSeedPath() { return currentSeed ? `seeds/${currentSeed.file}` : null; }
+function currentEra() { return document.getElementById('era-select').value; }
+
+async function renderStudy() {
+  const el = document.getElementById('study-log');
+  if (!currentSeed) { el.innerHTML = '<p class="note">pick a work first</p>'; return; }
+  const d = await loadJSON(`data/seeds/${currentSeed.work_id}.directives.json`);
+  const rows = (d && d.directives || []).map(x => `
+    <div class="probe"><span>${esc(x.slug)}</span>
+      <span class="tag ${x.lineage === 'verified' ? 'ok' : ''}">${esc(x.lineage)}</span></div>
+    <div class="probe-detail"><p class="note">${esc(x.text)}</p></div>`).join('');
+  el.innerHTML = rows || '<p class="note">no directives committed yet</p>';
+}
+
+function refreshBaseNote() {
+  const el = document.getElementById('base-note');
+  el.textContent = currentSeed ? `base: ${currentSeed.work_id} ${currentSeed.file}` : '';
+}
+
+async function init() {
+  seedIndex = await loadJSON('data/seeds/index.json') || { seeds: [] };
+  const workSel = document.getElementById('work-select');
+  const seedSel = document.getElementById('seed-select');
+  const works = [...new Set(seedIndex.seeds.map(e => e.work_id))];
+  workSel.innerHTML = works.map(w => `<option value="${esc(w)}">${esc(w)}</option>`).join('')
+    || '<option value="">no seeds</option>';
+
+  function pickSeed() {
+    const wid = workSel.value;
+    const revs = seedIndex.seeds.filter(e => e.work_id === wid);
+    seedSel.innerHTML = revs.map((e, i) => `<option value="${i}">${esc(e.file)}</option>`).join('');
+    const entry = revs[Number(seedSel.value) || 0];
+    currentSeed = entry ? { work_id: entry.work_id, file: entry.file } : null;
+    refreshBaseNote();
+    renderStudy();
+  }
+  workSel.addEventListener('change', pickSeed);
+  seedSel.addEventListener('change', pickSeed);
+  if (works.length) pickSeed();
+
+  const input = document.getElementById('directive-input');
+
+  document.getElementById('dry-run-btn').onclick = async () => {
+    const text = input.value.trim();
+    if (!text) { setStatus('enter a directive first.'); return; }
+    if (!currentSeedPath()) { setStatus('pick a work first.'); return; }
+    setStatus('dry-running…');
+    const j = await post('muse_rehearse.dry-run', [currentSeedPath(), text, '--era', currentEra()]);
+    if (!j.ok) { setPreview(''); setStatus(`error: ${j.error || (j.stderr || '').trim() || 'dry run failed'}`); return; }
+    let diff = null;
+    try { diff = JSON.parse(j.stdout); } catch (e) { diff = null; }
+    setPreview(diff ? diffTable(diff) : `<pre>${esc(j.stdout || '')}</pre>`);
+    setStatus('dry run complete — nothing written.');
+    if (diff) logAttempt(text, 'dry-run', attemptSummaryFor('dry-run', diff));
+  };
+
+  document.getElementById('score-btn').onclick = async () => {
+    const text = input.value.trim();
+    if (!text) { setStatus('enter a directive first.'); return; }
+    if (!currentSeedPath()) { setStatus('pick a work first.'); return; }
+    setStatus('scoring…');
+    const j = await post('muse_rehearse.score-dry-run', [currentSeedPath(), text, '--era', currentEra()]);
+    if (!j.ok) { setPreview(''); setStatus(`error: ${j.error || (j.stderr || '').trim() || 'score failed'}`); return; }
+    let s = null;
+    try { s = JSON.parse(j.stdout); } catch (e) { s = null; }
+    if (!s || !s.base) { setPreview(`<pre>${esc(j.stdout || '')}</pre>`); setStatus('score returned no probe comparison.'); return; }
+    setPreview(scoreTable(s));
+    setStatus('score complete — nothing written.');
+    logAttempt(text, 'score', attemptSummaryFor('score', s));
+  };
+
+  document.getElementById('listen-btn').onclick = async () => {
+    const text = input.value.trim();
+    if (!text) { setStatus('enter a directive first.'); return; }
+    if (!currentSeedPath()) { setStatus('pick a work first.'); return; }
+    setStatus('rendering…');
+    const tier = document.getElementById('listen-tier').value;
+    const j = await post('muse_rehearse.render-dry-run', [currentSeedPath(), text, '--era', currentEra(), '--tier', tier]);
+    if (!j.ok) {
+      const msg = (j.stderr || '').trim() || 'render failed';
+      setStatus(`error: ${msg}. The samples tier needs RUBATO_SAMPLE_ROOT on the runner.`);
+      return;
+    }
+    let r = null;
+    try { r = JSON.parse(j.stdout); } catch (e) { r = null; }
+    if (!r || !r.wav) { setStatus('render returned no audio.'); return; }
+    const audio = document.getElementById('coach-audio');
+    audio.style.display = '';
+    audio.src = r.wav;
+    audio.play().catch(() => {});
+    setStatus(`rendered (${r.tier}${r.library ? ' · ' + r.library : ''}) — ${r.duration_sec}s · ${r.notes} notes. Playing the candidate.`);
+    logAttempt(text, 'listen', `${r.tier} · ${r.duration_sec}s · ${r.notes} notes`);
+  };
+
+  document.getElementById('commit-btn').onclick = async () => {
+    const text = input.value.trim();
+    if (!text) { setStatus('enter a directive first.'); return; }
+    if (!currentSeedPath()) { setStatus('pick a work first.'); return; }
+    const slug = rehearseSlug(text);
+    if (!slug) { setStatus('directive has no usable slug.'); return; }
+    setStatus('committing…');
+    const j = await post('muse_rehearse.commit', [currentSeedPath(), slug, text, '--era', currentEra()]);
+    if (j.ok) {
+      const last = session[session.length - 1];
+      if (last && last.directive === text) last.committed = true;
+      renderSession();
+      renderStudy();
+    }
+    setStatus(j.ok
+      ? `committed — ${(j.stdout || '').trim().split('\n').join(' · ')}`
+      : `error: ${j.error || (j.stderr || '').trim() || 'commit failed'}`);
+  };
+
+  document.getElementById('discard-btn').onclick = () => {
+    input.value = '';
+    setPreview('');
+    setStatus('discarded — nothing written.');
+  };
+
+  document.getElementById('clear-btn').onclick = () => {
+    session.length = 0;
+    renderSession();
+  };
+
+  document.getElementById('export-btn').onclick = () => {
+    const blob = new Blob([JSON.stringify({
+      work_id: currentSeed && currentSeed.work_id,
+      seed: currentSeed && currentSeed.file,
+      era: currentEra(),
+      attempts: session,
+    }, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `coaching-session-${currentSeed ? currentSeed.work_id : 'none'}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+}
+
+init().catch(e => { setStatus(`load error: ${e}`); });
+</script>
+</body>
+</html>

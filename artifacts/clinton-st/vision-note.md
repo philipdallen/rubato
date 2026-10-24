@@ -10,7 +10,7 @@ What the artifact shows:
 
 - **The format closes.** The tune encodes to a 1,608-byte `.ru` container
   (`artifacts/clinton-st/clinton-st.ru`) and decodes back note-for-note:
-  recall 1.0, precision 1.0 against the source MusicXML. Nothing is lost and
+  recall 1.0, precision 1.0 against the source MusicXML (196 pitched notes + 16 rests, 2 parts). Nothing is lost and
   nothing is invented between source and container.
 - **The pipeline runs on a real tune.** Source MusicXML → IR → `.ru` → decode →
   audio, using only the repo's own tools. The render is the sine stand-in path

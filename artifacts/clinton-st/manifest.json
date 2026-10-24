@@ -1,11 +1,13 @@
 {
   "fidelity": {
     "check": "tools/muse_diff.diff",
-    "notes_decoded": 212,
-    "notes_source": 212,
+    "events_decoded": 212,
+    "events_source": 212,
     "parts": 2,
+    "pitched_source": 196,
     "precision": 1.0,
-    "recall": 1.0
+    "recall": 1.0,
+    "rests_source": 16
   },
   "format": "rubato-proof-artifact-v1",
   "payload_sha256": {

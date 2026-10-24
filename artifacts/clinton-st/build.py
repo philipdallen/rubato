@@ -76,8 +76,12 @@ def main():
         "source": SOURCE,
         "fidelity": {"check": "tools/muse_diff.diff",
                      "recall": report.recall, "precision": report.precision,
-                     "notes_source": work.note_count,
-                     "notes_decoded": decoded.note_count,
+                     "events_source": work.note_count,
+                     "pitched_source": sum(1 for p in work.parts
+                                           for n in p.notes if not n.is_rest),
+                     "rests_source": sum(1 for p in work.parts
+                                         for n in p.notes if n.is_rest),
+                     "events_decoded": decoded.note_count,
                      "parts": len(work.parts)},
         "payload_sha256": {k: hashlib.sha256(v).hexdigest()
                            for k, v in payloads.items()},

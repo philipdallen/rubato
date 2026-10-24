@@ -1,0 +1,21 @@
+{
+  "fidelity": {
+    "check": "tools/muse_diff.diff",
+    "notes_decoded": 212,
+    "notes_source": 212,
+    "parts": 2,
+    "precision": 1.0,
+    "recall": 1.0
+  },
+  "format": "rubato-proof-artifact-v1",
+  "payload_sha256": {
+    "manifest.json": "569161ab4322a55013692ef6d20dfbca8be1e980f7aaa2b55dd315cacd4d8669",
+    "roll.bin": "a64a513b11aa9378cfdfe3922cd8b17503fdf6a840e7ee99b22bda222516d5d7",
+    "seed.bin": "958b604f5f30285807762c09f34e86ae97315c141d03b1aadd646cdd8767ac76"
+  },
+  "reproduce": "python3 artifacts/clinton-st/build.py",
+  "score_png_sha256": "3df72641641ce540c7b75301bdbc53d640da2cf806f6605142d22762d3e72b70",
+  "source": "corpus/allen/clinton-st.musicxml",
+  "wav_sha256": "2e327e8bfbc494247682e79e7a423bca8b7b1b15832f53dbddca0f2136627112",
+  "work_id": "clinton-st"
+}

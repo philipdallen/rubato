@@ -15,3 +15,6 @@ docs/audio/*.wav
 
 # Coaching scratch renders (content-addressed, reproducible on demand)
 docs/workbench/data/renders/
+
+# Clinton St proof artifact render (reproducible: artifacts/clinton-st/build.py)
+artifacts/clinton-st/clinton-st.wav

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clinton St — a Rubato proof artifact</title>
+<meta name="robots" content="noindex">
+<style>
+  :root { --ink:#1c1a17; --mut:#6b6459; --line:#ddd6c8; --bg:#faf7f0; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font:16px/1.6 Georgia, "Times New Roman", serif; }
+  main { max-width:46rem; margin:0 auto; padding:2.5rem 1.25rem 4rem; }
+  h1 { font-size:1.9rem; margin:0 0 .2rem; }
+  .sub { color:var(--mut); margin:0 0 2rem; }
+  h2 { font-size:1.05rem; text-transform:uppercase; letter-spacing:.08em;
+       color:var(--mut); margin:2.5rem 0 .75rem; border-bottom:1px solid var(--line);
+       padding-bottom:.35rem; }
+  img { width:100%; height:auto; border:1px solid var(--line); background:#fff; }
+  audio { width:100%; margin-top:.75rem; }
+  table { border-collapse:collapse; width:100%; font-size:.92rem; }
+  td, th { text-align:left; padding:.4rem .6rem; border-bottom:1px solid var(--line); }
+  th { color:var(--mut); font-weight:normal; }
+  code { font:0.88em ui-monospace, Menlo, monospace; background:#efe9dc; padding:.1em .3em; }
+  .note { background:#fff; border:1px solid var(--line); padding:1rem 1.25rem; }
+  .draft { color:#8a4b12; font-weight:bold; }
+  .gap { color:#8a1212; }
+  footer { margin-top:3rem; color:var(--mut); font-size:.85rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Clinton St</h1>
+  <p class="sub">13 bars · C major · Long Meter Double · a tune by Philip D. Allen,
+     encoded as <code>clinton-st.ru</code> in the Rubato format.</p>
+
+  <h2>Score</h2>
+  <img src="score.png" alt="Piano-roll score of Clinton St, two parts, 13 bars">
+  <p class="sub">Piano-roll score (two parts), rendered from the decoded container.</p>
+
+  <h2>Audio</h2>
+  <audio controls src="clinton-st.wav"></audio>
+  <p class="sub">Sine stand-in render (<code>tools/muse_play</code>). The VSCO 2 CE
+     sample tier (<code>tools/muse_sample</code>) is the intended take but needs CDN
+     read access, which was unavailable when this page was built.</p>
+
+  <h2>Fidelity</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td>Notes in source MusicXML</td><td>212 (2 parts)</td></tr>
+    <tr><td>Notes after decode</td><td>212 (2 parts)</td></tr>
+    <tr><td>Round-trip recall / precision</td><td>1.0 / 1.0</td></tr>
+    <tr><td>Container size</td><td>1,608 bytes</td></tr>
+  </table>
+  <p class="sub">Reproduce with <code>python3 artifacts/clinton-st/build.py</code>.</p>
+
+  <h2>Vision note <span class="draft">(draft — owner's edit)</span></h2>
+  <div class="note">
+    <p>Clinton St is the first finished piece in the Rubato format: a 13-bar tune in
+    C major, Long Meter Double, carried end to end through the pipeline rather than
+    described by it. The format closes — the tune encodes to a 1,608-byte container
+    and decodes back note-for-note — and it is the owner's own work: a human tune in a
+    machine format, which is the point.</p>
+  </div>
+  <p class="sub">Full draft: <code>artifacts/clinton-st/vision-note.md</code>.</p>
+
+  <h2 class="gap">Staging status</h2>
+  <p class="sub">This page is not yet on the CDN. Two things are required, both
+  blocked by the CDN credential: the worker serves no <code>/proof/</code> route
+  (only <code>/workbench/ /audio/ /explorer/ /boardroom/</code>), so a route must be
+  added and the worker redeployed; and the page plus its score and audio must be
+  uploaded to R2. See issue #443.</p>
+
+  <footer>No public launch. <code>noindex</code> is set; this is a staging artifact.</footer>
+</main>
+</body>
+</html>

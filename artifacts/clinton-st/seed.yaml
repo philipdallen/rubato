@@ -1,0 +1,37 @@
+format_version: '0.1'
+work_id: clinton-st
+title: Clinton St — Long Meter Double, C major
+params:
+  tempo:
+    min_bpm: 60
+    max_bpm: 120
+    default_bpm: 84
+  energy:
+    level: 0.4
+    shape: arch
+  density:
+    min_notes_per_beat: 0.5
+    max_notes_per_beat: 4
+  variation:
+    level: 1
+    points: []
+philosophy:
+  tempo_philosophy: [steady, hymn-like]
+  dynamic_philosophy: [terraced, verse-shaped]
+  articulation_stance: [breathe at phrase ends, legato throughout]
+  provenance:
+    author: philipdallen
+    ai_assisted: false
+variation_points: []
+assertions:
+  register:
+    part: P1
+    min: C3
+    max: C5
+  tempo_bounds:
+    min_bpm: 60
+    max_bpm: 120
+provenance:
+  source: corpus/allen/clinton-st.musicxml
+  author: philipdallen
+  ai_assisted: false

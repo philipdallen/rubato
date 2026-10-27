@@ -402,17 +402,24 @@ def _one_note_xml(lyric_xml: str) -> str:
     )
 
 
-# --- MIDI lyric meta (0x05): deliberately unimplemented ---
+# --- MIDI lyric meta (0x05): read into verse-1 lyrics (#451) ---
 
-def test_midi_lyric_meta_is_not_read():
-    """MIDI lyric meta events (0x05) are deliberately unimplemented: the
-    corpus's MIDI sources (Byrd) are untexted, so there is no evidence to
-    drive the behaviour and guessing it would violate "no construct without
-    corpus evidence". This pins the decision — a texted MIDI source yields a
-    note with no lyric, but the load now *warns* that the lyric events were
-    dropped, so the gap is loud rather than a silent loss (#365). Invert this
-    when texted MIDI evidence lands.
+def test_midi_lyric_meta_round_trips():
+    """MIDI lyric meta events (0x05) are read into verse-1 lyrics (#451).
+
+    This test previously pinned the *opposite* — that lyric meta was dropped
+    with a warning — because the corpus's only MIDI source (Byrd) is untexted
+    and there was no evidence to drive the behaviour. The decision was to
+    implement it the moment a texted MIDI source arrived, and the gap was the
+    one pipeline.md names by name. It is now implemented: each lyric event's
+    text attaches to the following note as verse-1 ``lyric`` (no syllabic is
+    inferred — MIDI carries none), and the drop-warning no longer fires.
+
+    Round-trip: the lyric survives the S2 roll codec (encode → decode), so it
+    is carried, not merely tolerated at parse time.
     """
+    from muse_roll.roll import decode, encode
+
     mid = mido.MidiFile(type=1, ticks_per_beat=480)
     conductor = mido.MidiTrack()
     conductor.append(mido.MetaMessage("track_name", name="Texted", time=0))
@@ -425,19 +432,27 @@ def test_midi_lyric_meta_is_not_read():
     voice.append(mido.MetaMessage("lyrics", text="Freu", time=0))
     voice.append(mido.Message("note_on", note=64, velocity=80, time=0))
     voice.append(mido.Message("note_off", note=64, velocity=0, time=480))
+    voice.append(mido.MetaMessage("lyrics", text="de", time=0))
+    voice.append(mido.Message("note_on", note=67, velocity=80, time=0))
+    voice.append(mido.Message("note_off", note=67, velocity=0, time=480))
     mid.tracks.append(voice)
 
     buf = io.BytesIO()
     mid.save(file=buf)
     buf.seek(0)
     work = load_midi(buf)
+
     texted = [n for p in work.parts for n in p.notes]
-    assert len(texted) == 1
-    assert texted[0].lyric is None
-    assert texted[0].syllabic is None
-    assert texted[0].extend is False
-    assert texted[0].verses == ()
-    assert any("lyric" in w.lower() for w in work.meta.warnings), (
-        "a texted MIDI source must warn that its lyric events were dropped; "
-        "silent loss is the defect #365 was filed to remove"
+    assert [n.lyric for n in texted] == ["Freu", "de"]
+    # No syllabic is inferred from MIDI (there is no such field to read), and
+    # no verse number exists, so every event lands on verse 1.
+    assert all(n.syllabic is None and n.extend is False and n.verses == ()
+               for n in texted)
+    assert not any("lyric" in w.lower() for w in work.meta.warnings), (
+        "lyric events are now read; the drop-warning must not fire"
     )
+
+    # The text is actually carried by the roll codec, not just the parse.
+    restored = decode(encode(work))
+    restored_lyrics = [n.lyric for p in restored.parts for n in p.notes]
+    assert restored_lyrics == ["Freu", "de"]

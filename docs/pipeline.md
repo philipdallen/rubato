@@ -70,16 +70,12 @@ comparison the chain diffs on, so a dropped lyric **fails** the chain.
 Treat parser coverage as part of this gate: when a new source construct is
 found, ask whether the IR reads it, not only whether the chain is green.
 
-The one **known remaining instance** of that caveat is MIDI vocal text:
-MIDI lyric meta events (`0x05`) are not read. The corpus's MIDI sources
-(Byrd) are untexted, so there is no evidence to drive the behaviour and
-guessing it would violate "a construct without corpus evidence doesn't
-ship". The decision is recorded, not silently deferred — a texted MIDI
-source loads with no lyric but does **warn** that the lyric events were
-dropped (`Work.meta.warnings`), and `tools/ir/tests/test_vocal_text.py`
-pins that state so it is visible as a loud choice rather than a silent
-loss. When a texted MIDI source arrives, parsing plus a round-trip pin is
-the follow-up, and that test is the one to invert.
+MIDI lyric meta events (`0x05`) are now read (#451): each lyric event's
+text attaches to the following note as verse-1 lyric, using the existing
+S6 `Note.lyric` field with no syllabic inferred (MIDI carries none). The
+drop-warning is gone and the pin test is inverted into a round-trip test
+over a small synthetic texted fixture. Byrd is untexted, so its parse is
+unchanged. This closes the last lyric path that warned-and-dropped.
 
 ## Phase 2 — Deterministic player (the baseline)
 

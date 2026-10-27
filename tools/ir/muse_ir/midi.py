@@ -4,6 +4,11 @@ Full maps from set_tempo / key_signature / time_signature meta events
 (mid-piece changes preserved). Parts are tracks that contain notes; the
 conductor track's meta events feed the work-level maps. Velocities come
 from note_on; sources lacking velocity information mark it inferred.
+
+Lyric meta events (0x05) attach to the note they precede as verse-1 lyric
+(S6/#318, #451). No syllabic is inferred — each event is its own text on its
+own note — because MIDI carries no syllabic marker; the absence is the
+documented rule, not a gap.
 """
 
 from __future__ import annotations
@@ -60,15 +65,15 @@ def load_midi(source, origin: str = None) -> Work:
     key: set = set()
     parts = []
     title = None
-    lyric_meta_count = 0
 
     for track_index, track in enumerate(mid.tracks):
         tick = 0
         track_name = None
         gm_program = None
-        open_notes: dict = defaultdict(deque)  # (channel, pitch) -> deque of (onset, velocity, inferred)
+        open_notes: dict = defaultdict(deque)  # (channel, pitch) -> deque of (onset, velocity, inferred, lyric)
         notes = []
         velocity_inferred_count = 0
+        pending_lyric = None
         for msg in track:
             tick += msg.time
             if msg.type == "track_name" and track_name is None:
@@ -95,14 +100,20 @@ def load_midi(source, origin: str = None) -> Work:
                 fifths, mode = _KEY_FIFTHS[msg.key]
                 key.add((tick, fifths, mode))
             elif msg.type == "lyrics":
-                # Lyric meta (0x05) is deliberately unimplemented (no texted
-                # MIDI in the corpus), but the loss must be audible (#365).
-                lyric_meta_count += 1
+                # Lyric meta (0x05) text belongs to the next note_on. MIDI
+                # carries no syllabic marker or verse number, so no syllabic
+                # is inferred and each event is verse-1 text on its note
+                # (#451). An event with no following note is dropped (there
+                # is no note to carry it).
+                pending_lyric = msg.text
             elif msg.type == "program_change":
                 if gm_program is None:
                     gm_program = msg.program
             elif msg.type == "note_on" and msg.velocity > 0:
-                open_notes[(msg.channel, msg.note)].append((tick, msg.velocity, False))
+                open_notes[(msg.channel, msg.note)].append(
+                    (tick, msg.velocity, False, pending_lyric)
+                )
+                pending_lyric = None
             elif msg.type == "note_off" or (msg.type == "note_on" and msg.velocity == 0):
                 queue = open_notes.get((msg.channel, msg.note))
                 if not queue:
@@ -110,7 +121,7 @@ def load_midi(source, origin: str = None) -> Work:
                         f"{origin}: track {track_index}: note_off without note_on "
                         f"(channel={msg.channel}, pitch={msg.note}, tick={tick})"
                     )
-                onset, velocity, inferred = queue.popleft()
+                onset, velocity, inferred, lyric = queue.popleft()
                 if tick - onset <= 0:
                     raise IRParseError(
                         f"{origin}: track {track_index}: non-positive note duration "
@@ -120,7 +131,7 @@ def load_midi(source, origin: str = None) -> Work:
                     velocity_inferred_count += 1
                 notes.append(
                     Note(pitch=msg.note, onset=onset, duration=tick - onset, velocity=velocity,
-                         velocity_inferred=inferred)
+                         velocity_inferred=inferred, lyric=lyric)
                 )
         dangling = [(ch, p, q[0][0], q[0][2]) for (ch, p), q in open_notes.items() if q]
         if dangling:
@@ -157,10 +168,6 @@ def load_midi(source, origin: str = None) -> Work:
     if 0 not in meter:
         warnings.append("no time_signature meta event; inserted 4/4 at tick 0")
         meter[0] = (4, 4)
-    if lyric_meta_count:
-        warnings.append(
-            f"{lyric_meta_count} lyric event(s) ignored — MIDI lyric import is not implemented"
-        )
 
     work = Work(
         parts=parts,

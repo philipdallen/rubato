@@ -5,4 +5,6 @@ pytest==9.1.1
 mido==1.3.3
 pyyaml==6.0.3
 matplotlib==3.11.2
+numpy==2.5.4      # muse_sample (pool/render), muse_form, muse_viz
+scipy==1.18.1     # muse_sample/pool.py resample_poly (#448)
 playwright==1.64.0  # qa_frontend suite (browser itself installs full-tier-only, see run_tests.sh)

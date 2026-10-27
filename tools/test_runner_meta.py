@@ -83,9 +83,10 @@ def test_requirements_file_mentions_deps():
 # tree, so a new tool landing without registration fails on its own.
 
 # Paths excluded from the contract by design: spike scripts are pre-workflow,
-# and this meta suite runs directly, not via the runner.
+# and these two runner self-tests run directly (they invoke run_tests.sh on
+# synthetic tmp suites), not via the runner — registering them would recurse.
 DISCOVERY_EXCLUDE_DIRS = {"spike", "__pycache__"}
-DISCOVERY_EXCLUDE_FILES = {"test_runner_meta.py"}
+DISCOVERY_EXCLUDE_FILES = {"test_runner_meta.py", "test_runner_parallel.py"}
 
 
 def _registered_dirs():

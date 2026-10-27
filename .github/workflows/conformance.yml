@@ -20,12 +20,12 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install runtime deps
-        run: pip install mido matplotlib pyyaml pytest playwright
+        run: pip install mido matplotlib pyyaml pytest playwright numpy scipy
       - name: Conformance gate (~2.5 min)
         run: |
           set -e
           export MUSE_SKIP_SLOW=1
-          ./tools/run_tests.sh                    # 12 suites aggregate exit code
+          ./tools/run_tests.sh                    # fast-tier suites, aggregate exit code
 
   slow-beethoven9:
     runs-on: ubuntu-latest
@@ -36,7 +36,7 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install runtime deps
-        run: pip install mido matplotlib pyyaml pytest playwright
+        run: pip install mido matplotlib pyyaml pytest playwright numpy scipy
       - name: Slow conformance (Beethoven 9, ~30–35s)
         run: |
-          ./tools/run_tests.sh --full                # 13 suites incl. B9 (allow-fail)
+          ./tools/run_tests.sh --full                # adds slow suites incl. B9 (allow-fail)

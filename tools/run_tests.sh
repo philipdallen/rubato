@@ -87,10 +87,24 @@ SUITES+=("muse_audio:muse_audio/tests")
 # CDN worker (fast tier, #423): hermetic suite against local wrangler dev +
 # local R2 binding — no CDN_TOKEN, no network. Skips if wrangler is absent.
 SUITES+=("muse_cdn:muse_cdn/tests")
+# R2 rehearsal directives (fast tier, #448): sub-second.
+SUITES+=("muse_rehearse:muse_rehearse/tests")
+# Sample pool (fast tier, #448): needs numpy/scipy (requirements.test.txt).
+SUITES+=("muse_sample:muse_sample/tests")
+# P3 conformance gate of record (fast tier, #448): the 3-work fast registry
+# gate plus its tamper/negative-vector tests — both sub-10s.
+SUITES+=("muse_ci:muse_ci/tests/test_conformance.py")
+SUITES+=("muse_ci_negative:muse_ci/tests/test_negative_vectors.py")
 SLOW_SUITES=(
   "muse_analyze:muse_analyze"
   "muse_chain:muse_chain"
   "qa_frontend:qa_frontend/tests"
+  # P3 store/regeneration fidelity (slow tier, #448): 16s, dominated by the
+  # Beethoven-9 full-corpus regeneration. Its corpus-coverage + pin-drift
+  # assertions currently fail on main — a stale-vector re-pin plus the
+  # corpus/allen registration (see #449/#455), not a registration defect.
+  # Kept off the fast gate (which is the fast registry) until those land.
+  "muse_ci_full:muse_ci/tests/test_conformance_full.py"
 )
 
 MODE=fast

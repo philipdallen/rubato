@@ -79,6 +79,9 @@ SUITES+=("hub_sweep:hub_sweep/tests")
 # Auditor (fast tier): offline drift/health checks. tools/test_runner_meta.py
 # enforces that any test_ file under tools/ is registered here.
 SUITES+=("auditor:auditor/tests")
+# Proof artifact (fast tier, #450): pin the committed Clinton St artifact
+# (manifest fidelity + payload hashes + decoded count); committed files only.
+SUITES+=("proof_artifact:proof_artifact/tests")
 # F1 form curve (fast tier): windowed detector-quantize on corpus file.
 SUITES+=("muse_form:muse_form/tests")
 # Workbench audio bridge (fast tier): stand-in renders + manifest + live-path

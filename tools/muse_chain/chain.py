@@ -37,6 +37,7 @@ REGISTRY = [
     ("schubert-d810", "schubert/death-and-the-maiden.mxl"),
     ("beethoven-sym5-mov1", "beethoven/beethoven-sym5-mov1.xml"),
     ("beethoven-sym9", "beethoven/beethoven-sym9.xml"),
+    ("clinton-st", "allen/clinton-st.musicxml"),
 ]
 
 # W4 pairwise diff was quadratic and gated above this many notes; as of #317

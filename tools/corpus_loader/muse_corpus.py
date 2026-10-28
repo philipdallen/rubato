@@ -68,6 +68,17 @@ WORKS = {
              {"parts": 52, "notes": 239459, "dynamics": 11931, "hairpins": 1013}),
         ],
     },
+    "allen-clinton-st": {
+        # Owner's own work (not public domain) — supplied as MIDI, converted
+        # to MusicXML 4.0 2026-10-21. Both files carry pins.
+        "title": "Allen, Clinton St (owner-supplied)",
+        "files": [
+            ("allen/clinton-st.musicxml",
+             {"parts": 2, "notes": 212, "dynamics": 0, "hairpins": 0}),
+            ("allen/clinton-st.mid",
+             {"parts": 2, "notes": 192, "dynamics": 0, "hairpins": 0}),
+        ],
+    },
 }
 
 

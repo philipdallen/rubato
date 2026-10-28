@@ -2,8 +2,8 @@
 
 Reference corpus for the whole build: the analyzer (Phase 0), the compression
 loop (Phase 3), conformance testing (Phase 2), and the end-to-end ratchet.
-All works are public domain; sources below are new engravings/encodings of
-those works.
+Every work is either public domain or owner-supplied; sources below are new
+engravings/encodings of those works (see Licensing).
 
 | Work | File(s) | Source | Format | Scale |
 |---|---|---|---|---|
@@ -12,6 +12,7 @@ those works.
 | Schubert, *Death and the Maiden* D.810 (complete quartet) | `schubert/death-and-the-maiden.mxl` | OpenScore/StringQuartets (CC) | compressed MusicXML | 24,772 notes, 4 parts, ~1,445 bars |
 | Beethoven, Symphony No. 5, mov. 1 (full orchestra) | `beethoven/beethoven-sym5-mov1.xml` | nyckmaia/maialib examples | MusicXML 3.1 | 13,675 notes, 12 parts, 431 dynamics |
 | Beethoven, Symphony No. 9 (complete) | `beethoven/beethoven-sym9.xml` | nyckmaia/maialib examples | MusicXML | 239,459 notes, 52 parts, 11,931 dynamics |
+| Allen, *Clinton St* (owner-supplied) | `allen/clinton-st.{musicxml,mid}` | owner's own MIDI, converted to MusicXML 4.0 (2026-10-21) | MIDI + MusicXML 4.0 | 2 parts; 212 notes (MusicXML) / 192 (MIDI); 13 bars, C major |
 
 ## Ladder
 
@@ -32,10 +33,15 @@ those works.
 - Schubert: OpenScore professional encoding, tempo marks; dynamics sparse.
 - Beethoven 5 mov 1: 431 dynamic markings — the richest expressive layer.
 - Beethoven 9: 11,931 dynamic markings, 52 staves including chorus/soloists.
+- Clinton St (Allen): owner-supplied MIDI converted to MusicXML 4.0; 2 parts,
+  no dynamics/hairpins; both the `.musicxml` and `.mid` carry pins. The
+  MusicXML metronome mark is present, so its tempo map uses `<sound tempo>`
+  values (a load warning, not an error).
 
 ## Licensing
 
-All four composers are long public domain (d. 1623–1827). Sources are new
-encodings of public-domain works, freely distributed by their hosts. Record
-provenance in the `.ru` manifest at compression time regardless — the
-format's own rule.
+The four composers (Bach, Byrd, Schubert, Beethoven) are long public domain
+(d. 1623–1827); their sources are new encodings of public-domain works, freely
+distributed by their hosts. Clinton St (Allen) is **not** public domain — it is
+the owner's own work, supplied for this project. Record provenance in the `.ru`
+manifest at compression time regardless — the format's own rule.

@@ -24,7 +24,9 @@ class TestRegistry:
             if not os.path.isdir(full):
                 continue
             for f in os.listdir(full):
-                if os.path.splitext(f)[1].lower() in (".xml", ".mxl", ".mid", ".midi"):
+                if os.path.splitext(f)[1].lower() in (
+                    ".xml", ".musicxml", ".mxl", ".mid", ".midi"
+                ):
                     on_disk.add(os.path.join(genre_dir, f))
         registered = {relpath for _, _, relpath, _ in mc.iter_files()}
         assert on_disk == registered, f"registry/corpus mismatch: {on_disk ^ registered}"

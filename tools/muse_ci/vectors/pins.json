@@ -73,6 +73,12 @@
       "sha256": "673574dca74bda23fa6a769495439cc25151a0962d0bacf1ffcf4791b0ae1e7d",
       "source": "corpus/byrd/6-Agnus.mid"
     },
+    "clinton-st": {
+      "canonical_bytes": 32208,
+      "ru": "clinton-st.ru",
+      "sha256": "16625a29fc2492c2f1699456c61257deefc96c0c5bead8c5330fa5eced8a9c98",
+      "source": "corpus/allen/clinton-st.musicxml"
+    },
     "schubert-d810": {
       "canonical_bytes": 3809779,
       "ru": "schubert-d810.ru",

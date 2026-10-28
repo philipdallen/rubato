@@ -20,7 +20,7 @@ A vector is a (`.ru` container → decoded event stream) pair:
 
 ```bash
 python3 tools/muse_ci/cli.py verify            # fast registry (the gate)
-python3 tools/muse_ci/cli.py verify --full     # all 13 corpus works
+python3 tools/muse_ci/cli.py verify --full     # all 14 corpus works
 python3 tools/muse_ci/cli.py generate --full   # rebuild vectors/ from corpus
 python3 tools/muse_ci/cli.py dump <work-id> -o actual.json   # mismatch forensics
 ```
@@ -46,7 +46,7 @@ the committed pins byte-for-byte is itself tested
 - `generate(vectors_dir, registry)` / `verify(vectors_dir, registry)` —
   store rebuild / gate. `verify` returns `VectorResult(work_id, status,
   detail)`.
-- `REGISTRY` (13 works), `FAST_REGISTRY` (3-work smoke subset),
+- `REGISTRY` (14 works), `FAST_REGISTRY` (3-work smoke subset),
   `VECTORS_DIR`.
 
 ## Dependencies

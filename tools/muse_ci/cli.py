@@ -1,7 +1,7 @@
 """P3 conformance CLI.
 
     python3 tools/muse_ci/cli.py verify            # fast registry (the gate)
-    python3 tools/muse_ci/cli.py verify --full     # all 13 corpus works
+    python3 tools/muse_ci/cli.py verify --full     # all 14 corpus works
     python3 tools/muse_ci/cli.py generate --full   # rebuild vectors/ from corpus
     python3 tools/muse_ci/cli.py dump <work-id>    # actual decoded canonical JSON
 

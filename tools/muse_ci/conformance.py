@@ -11,7 +11,7 @@ diffing against it.
 
     python3 tools/muse_ci/cli.py generate --full   # rebuild vectors/ from corpus
     python3 tools/muse_ci/cli.py verify            # fast registry (gate)
-    python3 tools/muse_ci/cli.py verify --full     # all 13 works
+    python3 tools/muse_ci/cli.py verify --full     # all 14 works
 """
 
 from __future__ import annotations
@@ -43,6 +43,7 @@ REGISTRY = [
     ("schubert-d810", "schubert/death-and-the-maiden.mxl"),
     ("beethoven-sym5-mov1", "beethoven/beethoven-sym5-mov1.xml"),
     ("beethoven-sym9", "beethoven/beethoven-sym9.xml"),
+    ("clinton-st", "allen/clinton-st.musicxml"),
 ]
 
 # Fast-tier gate: the chain-smoke subset (small, one MIDI + one MXL family).

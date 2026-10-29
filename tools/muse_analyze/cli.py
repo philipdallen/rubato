@@ -17,21 +17,9 @@ import muse_corpus  # noqa: E402
 
 from muse_analyze import patterns as analyzer  # noqa: E402
 
-CORPUS_FILES = [
-    "bach/bwv227.1.mxl",
-    "bach/bwv227.3.mxl",
-    "bach/bwv227.7.mxl",
-    "bach/bwv227.11.mxl",
-    "byrd/1-Kyrie.mid",
-    "byrd/2-Gloria.mid",
-    "byrd/3-Credo.mid",
-    "byrd/4-Sanctu.mid",
-    "byrd/5-Bened.mid",
-    "byrd/6-Agnus.mid",
-    "schubert/death-and-the-maiden.mxl",
-    "beethoven/beethoven-sym5-mov1.xml",
-    "beethoven/beethoven-sym9.xml",
-]
+# Derived from the corpus registry so a newly registered work cannot drift
+# out of the report (the hardcoded list silently missed allen/clinton-st, #449).
+CORPUS_FILES = [rel for _wid, _title, rel, _pins in muse_corpus.iter_files()]
 
 
 def main(argv=None):

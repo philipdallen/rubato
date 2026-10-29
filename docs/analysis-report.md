@@ -132,3 +132,23 @@ parts: {'P1': 3208, 'P2': 7613, 'P3': 5945, 'P4': 7915, 'P5': 6240, 'P6': 3918, 
   ostinato (rhythm): 14605 distinct patterns
   imitative entries: 0 distinct patterns
   delta curve points: 689
+
+## allen/clinton-st.musicxml
+
+work: allen/clinton-st.musicxml
+parts: {'P79f7e432b9978188b02abba622e79281': 95, 'P5dea6575bf3697a3b2fc9fc11ac92ca7': 117}
+  exact repeats: 1364 distinct patterns
+  transposed repeats: 1326 distinct patterns
+  ostinato (rhythm): 202 distinct patterns
+  imitative entries: 0 distinct patterns
+  delta curve points: 83
+
+## allen/clinton-st.mid
+
+work: allen/clinton-st.mid
+parts: {'track1': 82, 'track2': 110}
+  exact repeats: 1308 distinct patterns
+  transposed repeats: 1278 distinct patterns
+  ostinato (rhythm): 71 distinct patterns
+  imitative entries: 0 distinct patterns
+  delta curve points: 81

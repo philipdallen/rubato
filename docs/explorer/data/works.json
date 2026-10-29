@@ -427,6 +427,60 @@
     "transposed repeats": 150243,
     "imitative entries": 0
    }
+  },
+  {
+   "id": "allen-clinton-st",
+   "title": "Allen, Clinton St (owner-supplied)",
+   "file": "allen/clinton-st.musicxml",
+   "parts": 2,
+   "notes": 212,
+   "dynamics": 0,
+   "hairpins": 0,
+   "tempo_entries": 1,
+   "meter_entries": 1,
+   "key_entries": 1,
+   "duration_ticks": 786240,
+   "ppq": 10080,
+   "source_format": "musicxml",
+   "part_names": [
+    "Soprano/Alto",
+    "Tenor/Bass"
+   ],
+   "roll_bytes": 490,
+   "pack_ratio": 0.0076,
+   "piano_roll": "img/allen_clinton-st.png",
+   "patterns": {
+    "exact repeats": 1364,
+    "transposed repeats": 1326,
+    "imitative entries": 0
+   }
+  },
+  {
+   "id": "allen-clinton-st",
+   "title": "Allen, Clinton St (owner-supplied)",
+   "file": "allen/clinton-st.mid",
+   "parts": 2,
+   "notes": 192,
+   "dynamics": 0,
+   "hairpins": 0,
+   "tempo_entries": 1,
+   "meter_entries": 1,
+   "key_entries": 1,
+   "duration_ticks": 28800,
+   "ppq": 384,
+   "source_format": "midi",
+   "part_names": [
+    "upper:",
+    "lower:"
+   ],
+   "roll_bytes": 317,
+   "pack_ratio": 0.1749,
+   "piano_roll": "img/allen_clinton-st.png",
+   "patterns": {
+    "exact repeats": 1308,
+    "transposed repeats": 1278,
+    "imitative entries": 0
+   }
   }
  ]
 }

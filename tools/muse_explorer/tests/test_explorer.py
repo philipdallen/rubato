@@ -9,8 +9,10 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from muse_explorer.generate import generate  # noqa: E402
+from muse_corpus import WORKS  # noqa: E402
 
 REPO = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+REGISTRY_FILES = sum(len(e["files"]) for e in WORKS.values())
 EXPLORER = os.path.join(REPO, "docs", "explorer")
 
 
@@ -22,7 +24,7 @@ def works(tmp_path_factory):
 
 def test_works_json_covers_registry(works):
     entries, _ = works
-    assert len(entries) == 13, "every corpus registry file must appear"
+    assert len(entries) == REGISTRY_FILES, "every corpus registry file must appear"
 
 
 def test_every_work_has_pinned_fields(works):

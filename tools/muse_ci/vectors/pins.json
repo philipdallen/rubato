@@ -8,9 +8,9 @@
       "source": "corpus/bach/bwv227.1.mxl"
     },
     "bach-bwv227.11": {
-      "canonical_bytes": 29020,
+      "canonical_bytes": 31502,
       "ru": "bach-bwv227.11.ru",
-      "sha256": "37598abe2381b08fa3849a03d9f06befc02a3a4c909faebf010ea3519389543e",
+      "sha256": "3a83fe98bb2e83fefa46bf8388ddba1cda1f80505a8f837a50d4c3d0fabef273",
       "source": "corpus/bach/bwv227.11.mxl"
     },
     "bach-bwv227.3": {
@@ -20,9 +20,9 @@
       "source": "corpus/bach/bwv227.3.mxl"
     },
     "bach-bwv227.7": {
-      "canonical_bytes": 46363,
+      "canonical_bytes": 48846,
       "ru": "bach-bwv227.7.ru",
-      "sha256": "2c75c73fa8c5611d796e27296279a2bc31ca134123d67b5de7819e978a6657d1",
+      "sha256": "a05f8c218d00fcd796aa9bf589a78fe9dfd4b061224f680aa03af3e744ff05fa",
       "source": "corpus/bach/bwv227.7.mxl"
     },
     "beethoven-sym5-mov1": {
@@ -32,9 +32,9 @@
       "source": "corpus/beethoven/beethoven-sym5-mov1.xml"
     },
     "beethoven-sym9": {
-      "canonical_bytes": 35858004,
+      "canonical_bytes": 35982766,
       "ru": "beethoven-sym9.ru",
-      "sha256": "de3868130eb3cbdcb8ab91ccea32db65c062a9fb0716c84c0bbd4d1f68feca90",
+      "sha256": "1978bad3d782c21756cd11802a97412eac58d85256c1a5f01b80a652973c88dd",
       "source": "corpus/beethoven/beethoven-sym9.xml"
     },
     "byrd-1-kyrie": {
@@ -78,6 +78,12 @@
       "ru": "clinton-st.ru",
       "sha256": "16625a29fc2492c2f1699456c61257deefc96c0c5bead8c5330fa5eced8a9c98",
       "source": "corpus/allen/clinton-st.musicxml"
+    },
+    "clinton-st-mid": {
+      "canonical_bytes": 28075,
+      "ru": "clinton-st-mid.ru",
+      "sha256": "f07bfecc6f38d1cf18767144d4ef45d9ba2ad3f7669debeb597b03bc72bed6b3",
+      "source": "corpus/allen/clinton-st.mid"
     },
     "schubert-d810": {
       "canonical_bytes": 3809779,

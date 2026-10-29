@@ -21,7 +21,7 @@ class TestCorpusCoverage:
     def test_every_corpus_file_has_a_vector(self):
         on_disk = {
             os.path.relpath(f, CORPUS)
-            for ext in ("*.xml", "*.mxl", "*.mid")
+            for ext in ("*.xml", "*.mxl", "*.musicxml", "*.mid")
             for f in glob.glob(os.path.join(CORPUS, "*", ext))
         }
         covered = {rel for _, rel in REGISTRY}

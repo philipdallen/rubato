@@ -44,6 +44,9 @@ REGISTRY = [
     ("beethoven-sym5-mov1", "beethoven/beethoven-sym5-mov1.xml"),
     ("beethoven-sym9", "beethoven/beethoven-sym9.xml"),
     ("clinton-st", "allen/clinton-st.musicxml"),
+    # Coverage gate requires every corpus file (the chain registry carries one
+    # representative file per work; this store pins each source file).
+    ("clinton-st-mid", "allen/clinton-st.mid"),
 ]
 
 # Fast-tier gate: the chain-smoke subset (small, one MIDI + one MXL family).

@@ -6,15 +6,20 @@ probes — before committing. Dry run shows the param diff; Score shows the
 probe comparison; only Commit persists. Session attempts log in the page
 (export as JSON); nothing about the session is committed to the repo.
 
-Two tiers, mirroring test_workbench_rehearse_pane:
+Two tiers, plus a live round-trip (mirroring test_workbench_rehearse_pane
+and test_terminal_runner_reachability):
   * source-scan — the affordances, the score wiring, no mockup JSON;
   * DOM (Playwright) — the page mounts, the pickers populate, the
     offline-safe affordances (empty-directive guards, discard, export)
-    work without the runner.
+    work without the runner;
+  * live — the real page against the real runner server on one origin, a
+    directive actually dry-run and scored, and the compiled diff/score
+    asserted to reach the page (issue #452).
 """
 
 import os
 import re
+import threading
 
 import pytest
 
@@ -141,3 +146,62 @@ def test_discard_clears_without_network(server, session):
     assert page.locator("#directive-input").input_value() == ""
     assert "discarded" in page.locator("#coach-status").inner_text().lower()
     assert not posts, f"discard issued a request: {posts}"
+
+
+# --- Live tier: the real page against the real runner, one origin ---
+#
+# PR #395 added this tier for the Rehearse pane; the Coach page had the same
+# blind spot (issue #452): the offline tiers above never drive a real POST
+# through the runner, so the dry-run/score wiring could break against the real
+# runner while every offline test stays green. The page targets an
+# origin-relative `/api/run`, so the runner must serve docs/ and /api from one
+# origin — exactly what `server.py --docs` does.
+
+@pytest.fixture(scope="module")
+def runner_server():
+    sys.path.insert(0, os.path.join(REPO, "tools"))
+    from muse_workbench_runner.server import DOCS_DIR, serve
+
+    srv, url = serve(0, None, DOCS_DIR)
+    t = threading.Thread(target=srv.serve_forever, daemon=True)
+    t.start()
+    yield url
+    srv.shutdown()
+
+
+def test_coach_live_dry_run_reaches_page(runner_server, session):
+    """A directive dry-run through the real runner reaches the page: the
+    compiled param diff renders and the status reads complete."""
+    page = session.new_page()
+    page.goto(runner_server + "/workbench/coach.html", wait_until="networkidle")
+    page.locator("#directive-input").fill("phrase: quieter at bar 8")
+    with page.expect_response(lambda r: "/api/run" in r.url, timeout=30000):
+        page.locator("#dry-run-btn").click()
+    page.locator("#coach-preview table").wait_for(timeout=30000)
+
+    preview = page.locator("#coach-preview").inner_text()
+    assert "variation_points" in preview, (
+        "the compiled param diff did not reach the page"
+    )
+    status = page.locator("#coach-status").inner_text().lower()
+    assert "complete" in status, f"status did not read complete: {status!r}"
+    assert not session.console_errors, session.console_errors
+
+
+def test_coach_live_score_reaches_page(runner_server, session):
+    """A directive scored through the real runner reaches the page: the
+    candidate-vs-base probe comparison renders and the status reads complete."""
+    page = session.new_page()
+    page.goto(runner_server + "/workbench/coach.html", wait_until="networkidle")
+    page.locator("#directive-input").fill("phrase: quieter at bar 8")
+    with page.expect_response(lambda r: "/api/run" in r.url, timeout=30000):
+        page.locator("#score-btn").click()
+    page.locator("#coach-preview table").first.wait_for(timeout=30000)
+
+    preview = page.locator("#coach-preview").inner_text()
+    assert "coverage" in preview and "gate" in preview, (
+        "the candidate-vs-base score did not reach the page"
+    )
+    status = page.locator("#coach-status").inner_text().lower()
+    assert "complete" in status, f"status did not read complete: {status!r}"
+    assert not session.console_errors, session.console_errors

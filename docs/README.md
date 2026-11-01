@@ -58,6 +58,7 @@ that support it.
 | Doc | What it is |
 |---|---|
 | [tech-stack.md](tech-stack.md) | Borrow/build index — what Rubato uses vs. builds. |
+| [launch-protocol.md](launch-protocol.md) | The checkable launch criterion: three gates, the G3 listening rubric, evaluator pool, and threshold. |
 | [podcast-source.md](podcast-source.md) | System overview written for an outside reader. |
 | [lit-review-drift.md](lit-review-drift.md) | Timed check that the work is converging with research. |
 | [integration-testing-scope.md](integration-testing-scope.md) | Integration-testing scope (snapshot, 2026-08-23). |

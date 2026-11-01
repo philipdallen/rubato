@@ -31,6 +31,7 @@ gets a tracking slot. Sources: `docs/pipeline.md` locked decisions,
 | D21 | `muse_docs` may make network calls, but only via the explicit `refresh-issues` command; `lint --check-issues` reads a local cache and stays offline. The lint's default path and the fast test tier never touch the network. Issues absent from the cache are unknown, not stale — never flagged | locked | #315 + tools/muse_docs/README.md §Status claims |
 | D22 | S6 vocal/choral text schema: `lyric`/`syllabic`/`extend` on the note, presence-bitmap bits 5–7 + string-table intern; single verse in v0. B9 round-trips 3,587 lyrics + 405 melismas, Ode text reconstructs | locked | #318 + docs/design/s6-vocal-text.md |
 | D23 | W6 B9 compute scaling: keyed lookup at tolerance 0 (not suffix-array vs SIATEC-C vs sampling). B9 verifies at recall=precision=1.0 in ~1s | locked | #317 + docs/design/w6-b9-scaling.md |
+| D24 | Launch criterion is three checkable gates (spec v1.0, source-lossless chain, pre-registered listening rubric). G3 is a rubric fixed before evaluation, scored by ≥3 independent evaluators with the founder as one input — operationalizes D11 (human evaluation stays constant) without making the founder's ear the sole criterion | locked | #461 + docs/launch-protocol.md |
 
 ## Open decision points (tracking)
 

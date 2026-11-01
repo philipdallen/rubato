@@ -111,8 +111,10 @@ against S3 — the founder's ear gates quality. Design docs:
 | L4 — Distiller | Mockup → extracted interpretation → seed revision. The learning loop. | **done** (#196 → [tools/muse_distill](../tools/muse_distill/)) |
 
 **Phase 4 done when:** one corpus work, performed by the LLM player, passes
-the founder's by-ear evaluation as a musical performance — a reading worth a
-hall.
+the listening rubric in [launch-protocol.md](launch-protocol.md) §G3 — a
+reading worth a hall, scored by ≥3 independent evaluators against a rubric
+fixed in advance, with the founder's by-ear judgment as one input, not the
+criterion.
 
 ## Phase 5 — The event (the unveiling)
 

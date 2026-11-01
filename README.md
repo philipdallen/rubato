@@ -66,11 +66,21 @@ Phases 0–4 of the build plan ([docs/pipeline.md](docs/pipeline.md)) are
 complete; Phase 5 (the unveiling) is partly landed and the public publication
 step is deliberately deferred.
 
-**Launch-ready** means: the format spec is frozen at v1.0 (Phase 1 done),
-every corpus work round-trips through the deterministic player losslessly
-(Phase 2 done), and one corpus work performed by the LLM player has passed
-the founder's by-ear evaluation as a musical performance (Phase 4 done).
-Until all three hold, nothing is announced.
+**Launch-ready** means all three gates in
+[docs/launch-protocol.md](docs/launch-protocol.md) hold, each checkable by a
+reader:
+
+1. **G1 — spec frozen at v1.0** (`head -1 FORMAT_SPEC.md` reads v1.0).
+2. **G2 — every corpus work round-trips losslessly** through the chain gate,
+   with the losslessness comparison run against the *source*, not only the IR
+   (`python3 tools/muse_chain/cli.py --all`).
+3. **G3 — one corpus work passes a pre-registered listening rubric** scored by
+   at least three independent evaluators, with the founder's by-ear judgment as
+   one of the three, not the criterion.
+
+The rubric, the evaluator pool, and the pass threshold for G3 are fixed in
+[docs/launch-protocol.md](docs/launch-protocol.md) *before* any work is heard.
+As of 2026-11-01 no gate holds; until all three do, nothing is announced.
 
 The **TRL** column is the component's readiness level from
 [status/trl.json](status/trl.json) (1 = idea, 9 = proven in the field); the

@@ -5,7 +5,8 @@ Pre-drafting evidence for the W-series tools and S-series specs. Complements
 [PRIOR_ART_REVIEW.md](../PRIOR_ART_REVIEW.md) (schema-era landscape + the
 2026-08-25 appendix: DAW-native AI re-survey — the conductor role remains
 unclaimed; trained renderers do score→expressive MIDI, no LLM-with-sanctions
-prior art).
+prior art. Plus the 2026-09-21 appendix: container/rights/rejection-discipline
+prior art — MPM is the nearest neighbour to the seed).
 Conclusions here inform [design/w1-event-ir.md](design/w1-event-ir.md) and the
 downstream scaffolds it gates.
 

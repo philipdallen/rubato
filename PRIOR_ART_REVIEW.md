@@ -226,3 +226,130 @@ the output and a session-file mockup as the artifact.**
 - Structure in symbolic generation: arXiv 2403.07995 ("Motifs, Phrases, and Beyond"); T-ISMIR "Steerable Music Generation which Satisfies Long-Range Dependency Constraints" (doi 10.5334/tismir.97); constraint-based composition: Anders (SMC 2017)
 - Generative engines: mubert.com; endel.io; tomgruber.org/advisory/lifescore-story; reactionalmusic.com; Melodrive (Defold forum / Medium "The Sound of AI")
 - Label/AI settlements: Music Business Worldwide; dubspot blog "AI Music Licensing Explained (2026)"; Contrary Research Suno report
+
+---
+
+## Appendix — 2026-09-21 re-survey: container, rights, and rejection discipline
+
+Scope: the 2026-08-25 appendix covered the **research line** (trained
+renderers vs. an LLM conductor). This appendix covers the three areas it did
+not: **(1)** the container as a standard object, **(2)** the interpretation
+space against the *performance-markup* formats, and **(3)** the assertion /
+gate discipline against its prior art. Same discipline as the rest of this
+repo — a claim that survives a search is a candidate, not a finding.
+
+### A. The container — each member has established prior art
+
+`.mu` is a zip of `manifest.json` + `roll.bin` + `seed.bin` (+ optional
+`performances/`). Each member maps onto a mature standard elsewhere:
+
+| Prior art | What it provides | What it lacks vs `.mu` |
+|---|---|---|
+| **Nanopublications** (RDF named graphs: assertion + provenance + publication-info; signed, citable) | assertion + provenance + manifest as one machine-readable, attributable object | no authored variation space; no executable checks |
+| **RO-Crate 1.3** (research data + metadata + provenance; Workflow RO-Crate) | packaging content with provenance and workflow record | checks live in the pipeline, not the crate |
+| **ERC — Executable Research Compendium** (o2r; Nüst et al., D-Lib 2017) | container + metadata + **executable** reproduction | the executable part is the *analysis*, not a *trust predicate* |
+| **C2PA Content Credentials** (v2.3, 2026; X.509-signed manifest) | signed provenance: who, which tools, AI disclosure, tamper-evident | provenance only — no variation, no predicates on content |
+| **W3C ODRL 2.2** | rights **policy**: permissions / prohibitions / constraints / duties | governs actions *on* content, not variation *of* interpretation |
+| **in-toto / SLSA** (CNCF) | signed checks travel with the artifact; a signed layout defines expected inspections | the unit is *build provenance*, not content-level trust |
+
+**Read:** the container is a **recombination, not an invention**. That matters
+less than it sounds — formats win by adoption, not by being first. But it
+implies a design rule worth recording: the manifest should *align* with
+**C2PA**, the rights model with **ODRL**, and any attestation envelope with
+**in-toto**, rather than inventing three parallel formats with no ecosystem.
+The EU AI Act Art. 50 machine-readable marking mandate (in force 2026-08-02)
+pushes the same way. No action proposed here; recorded for the launch-position
+and grant narratives.
+
+### B. The interpretation space — MPM is the nearest neighbour
+
+The 2026-08-25 appendix covered EPR *research* (Basis Mixer, VirtuosoNet, S2A,
+Midi-LLM). It did **not** cover the *performance-markup* formats, which are the
+closer relatives for `seed.bin` specifically:
+
+- **MPM — Music Performance Markup** (Berndt; MEC 2021/2022; `meico`
+  framework; MPM Toolbox). *"A format dedicated to describe and model musical
+  performances in large detail in the manner of a construction kit… built upon
+  a series of mathematical models that capture performance features such as
+  continuous tempo and dynamics transitions, articulations, and metrical
+  accentuations."* This is the nearest prior art to `seed.bin` and the one a
+  reviewer will reach for first.
+- **PML — Performance Markup Language** (n-ISM): score + logical performance +
+  event-level score↔performance correspondences.
+
+The distinction that survives:
+
+| Approach | Where interpretation lives | Inspectable | Portable | Bounded by author |
+|---|---|---|---|---|
+| MPM / PML | in a *description of a performance* | yes | yes | no — describes, doesn't license |
+| EPR (Basis Mixer, RenderBox, Midi-LLM) | model-internal latent / text prompt | no | no | implicitly, not declared |
+| Constrained decoding | decoder constraints at generation time | partly | no | yes, but code-side |
+| **`seed.bin`** | **authored, bounded, licensed document** | **yes** | **yes** | **yes, by construction** |
+
+MPM/PML describe *what a performance was*; EPR encodes *a model's capability*;
+constrained decoding enforces *at generation time*. None makes the
+interpretation an **authored, portable, bounded document that constrains a
+space and gates conforming instances**. The expected objection is "this is MPM
+plus a licence"; the table above is the answer, and it should be stated in
+`FORMAT_SPEC.md` §5 rather than left to inference.
+
+### C. The assertion / gate discipline — novel as a convention
+
+Four established bodies of work surround the repo's "a gate that cannot fail is
+not a check":
+
+- **Mutation testing** (Jia & Harman, IEEE TSE 2010): measures whether a suite
+  detects injected faults. The repo's rule is the **mirror image** of an
+  *equivalent mutant* — a mutant no test can kill. The mechanism is decades
+  old; the rule *makes it per-check and mandatory*, which mutation testing
+  does not.
+- **Certifying algorithms** (McConnell/Mehlhorn/Näher/Schweitzer, 2011) and
+  **proof-carrying code** (Necula, POPL 1997): producer ships a cheap witness,
+  consumer validates it. Assertions-travel-with-the-artifact is this move,
+  generalized from safety proofs to trust predicates.
+- **Metamorphic / property-based testing** (Chen et al., ACM CSUR 2018):
+  correctness as relations rather than reference outputs — the direct answer
+  to the no-oracle problem.
+- **Negative controls / blank-and-LOD calibration**: standard in metrology and
+  clinical chemistry; a negative result is uninterpretable without a
+  demonstrated detection floor.
+
+**Verdict:** mechanisms established; the **convention** (deterministic-only,
+travels inside the artifact, composable, and **every assertion ships a fixture
+that makes it fail**) is unclaimed as a standard. This is the shape SLSA
+occupies — a convention others adopt — not a patentable mechanism.
+
+### D. What this does *not* change
+
+No format, spec, or scope change follows from this survey. In particular:
+
+- **No new container work.** The container is a recombination; the alignment
+  notes in §A are launch-positioning, not engineering tasks.
+- **The novel core is unchanged and now better supported.** The claim that
+  survives is the **gated, licensed interpretation space** (§B) — consistent
+  with the 2026-08-25 finding that the conductor role is unclaimed. The moat
+  remains the corpus ladder, the assertion discipline, and the staged event.
+- **§7's gap 1** ("an open, inspectable 'generative score' standard is
+  unclaimed") should be read as scoped to the *interpretation space*, not the
+  container. The container is an assembly; the space is the novel object.
+
+### E. Sources (this appendix)
+
+- MPM: axelberndt.github.io/MPM; Berndt, "Music Performance Markup: Format and
+  Software Tools Report," MEC 2021, pp. 57–63; `meico`
+- PML: n-ism.org/Projects/pml.php
+- Nanopublications: nanopub.net/guidelines/working_draft
+- RO-Crate: researchobject.org/ro-crate
+- ERC: o2r.info/erc-spec; Nüst et al., D-Lib Magazine, Jan 2017
+- C2PA: c2pa.org (spec v2.3, 2026)
+- ODRL: W3C ODRL Information Model / Vocabulary 2.2 (2018)
+- in-toto / SLSA: slsa.dev; in-toto attestation framework
+- Mutation testing: Jia & Harman, IEEE TSE 2010
+- Certifying algorithms: McConnell, Mehlhorn, Näher, Schweitzer (2011);
+  proof-carrying code: Necula, POPL 1997
+- Metamorphic testing: Chen et al., ACM CSUR 2018
+- Marking mandates: EU AI Act Art. 50 (in force 2026-08-02); GB 45438-2025
+
+*Compiled with literature-search tooling; two academic APIs were rate-limited
+during the sweep, and patent FTO (§6) remains open. "No direct prior art
+found" is a search result, not proof of absence.*

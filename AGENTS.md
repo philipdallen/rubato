@@ -135,6 +135,32 @@ See [FORMAT_SPEC.md](FORMAT_SPEC.md) for the format design,
   embedded, capture the token at start and need a restart / re-point after a
   rotation. See `portfolio-ops/ACCESS_AND_IDENTITIES.md`.
 
+## Session lessons (2026-10-09, status-board reconciliation)
+
+- **Verify the upstream default branch, not the local one, before building on
+  a "status board".** A board is a cache. This session started from a board
+  listing four open items; sibling runs had already landed two of them (#389,
+  #390), split a third (#388 into #393/#394), and — mid-session — landed the
+  fourth (#394) too, three times while this branch was being rebuilt.
+  `git fetch && git log --oneline origin/main` before the first edit, and
+  again before opening the PR, is cheaper than rebuilding landed work.
+- **Never stack a feature branch on another PR's branch.** Branching off a
+  sibling's head drags their diff into your PR (here: unrelated L5 docs) and
+  makes the review surface wrong. Branch from `origin/main`; if the base
+  moves, `git reset --hard origin/main` and re-apply only your files.
+- **Rebase-dedup applies to CI, not just code.** #393 landed the runner
+  allowlist + a `test_runner.py` assertion mid-session, and #394 landed a
+  whole `test_workbench_rehearse_pane.py`; the duplicate wiring and duplicate
+  tests were dropped. Same rule as the 2026-08-23 codec rebase.
+- **When your change has already landed, ship only the delta.** After #394
+  merged, the one genuinely uncovered path was the live runner round-trip
+  (the offline pane tests never POST to a real runner). That test was added
+  on top of `main`; the duplicate page work was discarded.
+- **`slow-beethoven9` is allow-fail by design** (`continue-on-error: true`,
+  W6 budget) and currently fails on a CI env gap — `No module named
+  playwright` in `run_tests.sh --full`. It is not a signal on your diff; the
+  `fast` job is the gate. See the `ci-slow-tier-playwright-deps` branch.
+
 ## Build / test
 
 One command runs the whole repo (issue #167):

@@ -10,7 +10,10 @@ Two tiers:
   * source-scan — the pane function body has the affordances and the
     runner wiring, and no mockup JSON;
   * DOM (Playwright) — the pane mounts per revision and the offline-safe
-    affordances (empty dry-run guard, discard) work without the runner.
+    affordances (empty dry-run guard, discard) work without the runner;
+  * live runner round-trip — the end-to-end path the offline tests cannot
+    reach: a real `server.py --docs` origin, a directive dry run, and the
+    compiled param diff rendered into the preview.
 """
 
 import os
@@ -121,3 +124,42 @@ def test_empty_dry_run_guards_without_network(server, session):
     first.locator("button", has_text="Dry run").click()
     assert "enter a directive" in first.locator(".rehearse-status").inner_text().lower()
     assert not posts, f"empty dry-run issued a request: {posts}"
+
+
+# --- Live runner round-trip (the one path the offline tests can't reach) ----
+
+@pytest.fixture(scope="module")
+def runner_origin():
+    """Serve docs/ AND /api from one origin, like `server.py --docs`.
+
+    This is the pane's real wiring path: it POSTs to an origin-relative
+    /api/run, so the runner must share the page's origin.
+    """
+    import threading
+
+    from muse_workbench_runner.server import serve
+
+    srv, url = serve(0, None, DOCS, ())
+    t = threading.Thread(target=srv.serve_forever, daemon=True)
+    t.start()
+    yield url
+    srv.shutdown()
+    srv.server_close()
+    t.join(timeout=2)
+
+
+def test_pane_dry_run_round_trip(runner_origin, session):
+    """Against the real runner: a directive dry run previews the compiled
+    param diff and writes nothing (R2 item 7). The offline tests cover the
+    guards; this covers the round-trip they cannot reach."""
+    page = session.new_page()
+    page.goto(runner_origin + "/workbench/detail.html", wait_until="networkidle")
+    pane = page.locator(".card.rehearsal .rehearse").first
+    pane.locator(".rehearse-input").fill("phrase: quieter at bar 8")
+    pane.locator(".rehearse-dry-run").click()
+    page.wait_for_selector(".rehearse-preview table", timeout=15000)
+    preview = pane.locator(".rehearse-preview").inner_text()
+    assert "tempo_flex" in preview, (
+        f"dry-run preview missing the compiled change: {preview}"
+    )
+    assert "dry run complete" in pane.locator(".rehearse-status").inner_text().lower()

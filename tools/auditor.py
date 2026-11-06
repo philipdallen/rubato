@@ -3,9 +3,11 @@
 
 See docs/AUDITOR.md for the full contract. Summary of the rules that matter:
 
-  * This tool NEVER edits code, never closes/merges anything, and never adds a
-    claimable-status label. Its only writes are (a) GitHub issues/comments/labels
-    and (b) one appended line in this repo's own status_log.jsonl.
+  * This tool never edits code, never merges, and never adds a claimable-status
+    label. Its writes are: (a) GitHub issues/comments/labels, (b) one appended
+    line in this repo's own status_log.jsonl, and (c) digest retention -- closing
+    stale `Auditor digest` issues, and only those under exactly `on-hold`
+    (proposals are never touched).
   * Every finding is held for human review via the ``on-hold`` label plus
     ``auditor:proposed`` or ``auditor:revise``. Nothing is auto-actioned.
   * The run is idempotent and checkpointed: it exits silently if HEAD has not
@@ -47,6 +49,11 @@ STATUS_LOG = "status_log.jsonl"
 LABEL_PROPOSED = "auditor:proposed"
 LABEL_REVISE = "auditor:revise"
 LABEL_HOLD = "on-hold"
+
+# Digest retention: keep the newest DIGEST_KEEP digests open; close older ones.
+# Date-unique titles make closing dedup-neutral (the auditor never reopens).
+DIGEST_TITLE_PREFIX = "Auditor digest \u2014"
+DIGEST_KEEP = 7
 
 # Labels this repo's task protocol uses to mark work claimable by agents.
 # The auditor must never add one of these -- only the human does, after review.
@@ -1095,7 +1102,28 @@ def find_existing(issues: list[dict], signature: str) -> dict | None:
 
 
 def digest_title(when: str) -> str:
-    return f"Auditor digest — {when[:10]}"
+    return f"{DIGEST_TITLE_PREFIX} {when[:10]}"
+
+
+def select_stale_digests(issues: list[dict],
+                         keep: int = DIGEST_KEEP) -> list[dict]:
+    """Digest issues safe to close, oldest-first beyond the newest `keep`.
+
+    Pure function so the policy is unit-testable. The filter is deliberately
+    strict: title prefix AND the label set exactly {on-hold}. Anything carrying
+    auditor:proposed / auditor:revise (or any other label) is never selected.
+    """
+    digests = [i for i in issues
+               if (i.get("title") or "").startswith(DIGEST_TITLE_PREFIX)
+               and {str(l.get("name")) for l in (i.get("labels") or [])} == {LABEL_HOLD}]
+    digests.sort(key=lambda i: i.get("number", 0), reverse=True)
+    return digests[keep:]
+
+
+def close_issue(gh: GitHub, repo: str, number: int, comment: str) -> None:
+    """Comment, then close. The only sanctioned close path in this tool."""
+    post_comment(gh, repo, number, comment)
+    gh.patch(f"/repos/{repo}/issues/{number}", {"state": "closed"})
 
 
 def build_digest_body(when: str, sha: str, commits: list[dict],
@@ -1166,7 +1194,7 @@ def create_issue(gh: GitHub, repo: str, title: str, body: str,
 # --------------------------------------------------------------------------
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="Daily repo health & drift audit (read-only).")
+    ap = argparse.ArgumentParser(description="Daily repo health & drift audit.")
     ap.add_argument("--repo", required=True, help="owner/name")
     ap.add_argument("--root", default=".", help="repo checkout root")
     ap.add_argument("--token-env", default="GITHUB_TOKEN")
@@ -1248,6 +1276,21 @@ def main(argv: list[str] | None = None) -> int:
                      f"Re-run for `{sha[:7]}`.\n\n{dbody}")
     else:
         create_issue(gh, args.repo, title, dbody, [LABEL_HOLD])
+
+    # Digest retention: close stale digests. Scoped, documented exception to
+    # the "never closes" rule -- only date-unique digest issues under exactly
+    # ["on-hold"] are selected (see select_stale_digests); proposals
+    # (auditor:proposed/revise) are never touched. Dedup-neutral: the auditor
+    # never reopens closed issues and no future digest can collide with one.
+    stale = select_stale_digests(issues)
+    for i in stale:
+        close_issue(
+            gh, args.repo, i["number"],
+            f"Closing as part of digest retention (keeping the newest {DIGEST_KEEP}). "
+            "Digest titles are date-unique, so this cannot collide with a future "
+            "digest, and the auditor never reopens closed issues.")
+    if stale:
+        print(f"retention: closed {len(stale)} stale digest(s)")
 
     append_status_entry(root, build_status_entry(root, when, sha, len(opened), len(revised)))
     save_state(root, sha, when)
